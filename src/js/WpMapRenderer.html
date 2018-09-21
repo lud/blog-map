@@ -22,7 +22,7 @@
   const META_HOVER = 'layer:hovered'
 
   function mountMap(el) {
-    const map = L.map(el).setView([0, 0], 1)
+    const map = L.map(el).setView([0, 0], 10)
     return { map }
   }
 
@@ -129,11 +129,11 @@
           //   })
           // }, 1)
 
-        map.addLayer(groupLayer)
         map.fitBounds(groupLayer.getBounds(), {
           padding: [50, 50],
-          duration: 0
+          animate: false
         })
+        map.addLayer(groupLayer)
         groupLayer.bringToFront()
       },
       setHighlightedLayer(layer, changeViewMethod, ...zoomArgs) {
