@@ -15,11 +15,11 @@ import {
 
 const production = !process.env.ROLLUP_WATCH
 const outputJs = production ?
-  'public/client/bundle.min.js' :
-  'public/client/bundle.js'
+  'public/widget/bundle.min.js' :
+  'public/widget/bundle.js'
 
 export default {
-  input: 'resources/js/app.js',
+  input: 'src/js/app.js',
   output: {
     sourcemap: true,
     format: 'iife',

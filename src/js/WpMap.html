@@ -1,0 +1,122 @@
+<Map ref:map
+     mapid="{mapid}"
+     background="{background}"
+     collection="{collection}"
+     activeArea="{mapAreaConfigs[mapArea]}"
+     on:click_feature="handleMapSelection(event, true)">
+    {#if page && page.title}
+        <div class="wpmap-panel" transition:fly="{y: 200, duration: 300}">
+            <b><a href="{page.url}">{page.title}</a></b>
+            <div>
+                {#await pageDescriptionPromise}
+                    <p>Chargement de la description ...</p>
+                {:then description}
+                    <p>{description}</p>
+                {:catch}
+                    <p class="error">Impossible de charger la description</p>
+                {/await}
+            </div>
+            <a href="#" on:click="closeInfoPanel(event)">close</a>
+        </div>
+    {/if}
+</Map>
+
+<script>
+    import { fly } from 'svelte-transitions'
+    import Map from './WpMapRenderer.html'
+    import { getPageMetaDescription } from './data-source'
+
+    function generateGlobalId() {
+        return 'wpmap-' + Math.round(Date.now() + Math.random() * Date.now()).toString(36)
+    }
+
+    export default {
+        components: { Map },
+        data() {
+            const gid = generateGlobalId()
+            return {
+                pageDescriptionPromise: null,
+                mapid: gid + '-map',
+                collection: null,
+                page: null,
+                nextPage: null,
+                mapArea: 'panel-hidden',
+                mapAreaConfigs: {
+                    'panel-hidden': {
+                        top: 0, left: 0, right: 0, bottom: 0
+                    },
+                    'panel-visible': {
+                        top: '10px', left: '40px', right: '10px', bottom: '50%'
+                    },
+                }
+            }
+        },
+        transitions: { fly },
+        onstate({ changed, current, previous }) {
+            if (changed.page && current.page) {
+                const { page } = current
+                const { url } = page
+                // @todo maybe reject if no url ?
+                const pDesc = url
+                    ? getPageMetaDescription(url)
+                    : Promise.resolve('__NO_DESCRIPTION__')
+                this.set({ pageDescriptionPromise: pDesc })
+            }
+            // we want to show a page. But if a page is already there, we
+            // want to trigger the info panel load manually. So new page to show
+            // is in state as "nextPage". if
+            if (changed.nextPage && current.nextPage) {
+                const page = current.nextPage
+                if (current.nextPage !== previous.page) {
+                    // the page changed so we animate the refresh of the panel
+                    this.set({ page: null })
+                    setTimeout(() => {
+                        this.set({ page, nextPage: null })
+                    }, 300)
+                } else {
+                    this.set({ page, nextPage: null })
+                }
+            }
+            if (changed.page && !current.page && this.refs.map) {
+                this.refs.map.setHighlightedLayer(null)
+            }
+        },
+        methods: {
+            setFeatureCollection(collection) {
+                this.set({ collection: collection, selection: null })
+            },
+            closeInfoPanel(event) {
+                this.set({ page: null, mapArea: 'panel-hidden' })
+                event.preventDefault()
+            },
+            handleMapSelection({ feature, layer }) {
+                const page = feature.properties
+                this.set({ nextPage: page, mapArea: 'panel-visible' })
+                // We spawn to allow this component to set the map active area
+                // to panel-visible
+                this.refs.map.setHighlightedLayer(layer)
+                // this.refs.map.panToLayerLat(layer)
+                this.refs.map.panToLayer(layer)
+            },
+        },
+        helpers: {
+        }
+    }
+</script>
+
+<style>
+    .wpmap-panel {
+        background: purple;
+        color: white;
+        padding: 1.5em;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        position: absolute;
+        height: 50%;
+        z-index: 900;
+    }
+    .wpmap-panel a {
+        color: white;
+    }
+</style>

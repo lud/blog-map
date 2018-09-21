@@ -1,0 +1,190 @@
+<div ref:leaflet id={mapid} class="wpmap-map">
+  <slot>Hello !</slot>
+</div>
+
+<style>
+  .wpmap-map {
+    height: 300px;
+  }
+</style>
+
+<script>
+  import 'leaflet/dist/leaflet.css'
+  import L from 'leaflet'
+  import 'leaflet-providers'
+  import 'leaflet-active-area'
+  import FeatureStyle from './feature-style'
+  import {
+    buildBackgroundLayer,
+  } from './leaflet-helpers'
+
+  const META_HIGHL = 'layer:highlighted'
+  const META_HOVER = 'layer:hovered'
+
+  function mountMap(el) {
+    const map = L.map(el).setView([0, 0], 1)
+    return { map }
+  }
+
+  function setMapBackground(map, backgroundKey) {
+    console.log('set background %s', backgroundKey)
+    // remove the current background
+    const currentBackGround = map.meta('background')
+    if (currentBackGround) {
+      map.removeLayer(currentBackGround)
+    }
+    const newBackground = buildBackgroundLayer(backgroundKey)
+    if (!newBackground) {
+      console.error("Could not build background for key : %s", backgroundKey)
+      return
+    }
+    map.meta('background', newBackground)
+    map.addLayer(newBackground)
+    newBackground.bringToBack()
+  }
+
+  function getStyleName(layer, currentHoveredLayer, currentHighlightedLayer) {
+    const baseStyle = layer === currentHoveredLayer
+      ? 'hover'
+      : 'default'
+    const prefix = layer === currentHighlightedLayer
+      ? 'highlight-'
+      : ''
+    return prefix + baseStyle
+  }
+
+  // -------------------------------------------------------------------------
+  // Component start
+  // -------------------------------------------------------------------------
+
+  export default {
+    data() {
+      return {
+        background: null,
+        collection: null,
+        featureStyle: new FeatureStyle(),
+        selection: {},
+      }
+    },
+    oncreate() {
+      const { map } = mountMap(this.refs.leaflet)
+      const { background, collection, featureStyle, activeArea } = this.get()
+      console.log('oncreate background', background)
+      console.log('oncreate collection', collection)
+      this.set({ map })
+      if (background) setMapBackground(map, background)
+      if (collection) this.setupFeaturesLayer()
+      this.applyActiveArea(activeArea)
+    },
+    onstate({ changed, current, previous }) {
+      // most code here must act on the map, but onstate() is fired once before
+      // oncreate(), and the map is created on oncreate(). So we test for the
+      // presence of the map in the state before acting on it
+      if (current.map && changed.background) {
+        setMapBackground(current.map, current.background)
+      }
+      if (current.map && changed.collection) {
+        this.setupFeaturesLayer()
+      }
+      if (current.map && changed.activeArea) {
+        this.applyActiveArea(current.activeArea)
+      }
+    },
+    methods: {
+      setupFeaturesLayer() {
+        let DEBUG_FAKE_CLICK_LAYER
+        const self = this
+        const { map, collection, featureStyle } = self.get()
+        const groupLayer = L.geoJson(collection, {
+            pointToLayer: function(feat, latlng) {
+              const layer = L.circleMarker(latlng)
+              featureStyle.setLayerStyle(layer, 'default')
+              DEBUG_FAKE_CLICK_LAYER = layer // we will get the last one
+              return layer
+            }
+          })
+          .on('click', function(group) {
+            self.fire('click_feature', {
+              feature: group.layer.feature,
+              layer: group.layer,
+              group
+            })
+          })
+          .on('mouseover', function({ layer }) {
+            map.meta(META_HOVER, layer)
+            const styleName = getStyleName(layer, layer, map.meta(META_HIGHL))
+            featureStyle.setLayerStyle(layer, styleName)
+          })
+          .on('mouseout', function({ layer }) {
+            map.meta(META_HOVER, null)
+            const styleName = getStyleName(layer, null, map.meta(META_HIGHL))
+            featureStyle.setLayerStyle(layer, styleName)
+          })
+
+          // setTimeout(function(){
+          //   self.fire('click_feature', {
+          //     feature: DEBUG_FAKE_CLICK_LAYER.feature,
+          //     layer: DEBUG_FAKE_CLICK_LAYER,
+          //     group: 'debug undef'
+          //   })
+          // }, 1)
+
+        map.addLayer(groupLayer)
+        map.fitBounds(groupLayer.getBounds(), {
+          padding: [50, 50],
+          duration: 0
+        })
+        groupLayer.bringToFront()
+      },
+      setHighlightedLayer(layer, changeViewMethod, ...zoomArgs) {
+        const { map, featureStyle } = this.get()
+        let previous = map.meta(META_HIGHL)
+        if (previous) {
+          const styleName = getStyleName(previous, map.meta(META_HOVER), layer)
+          featureStyle.setLayerStyle(previous, styleName)
+        }
+        map.meta(META_HIGHL, layer)
+        if (layer) {
+          const styleName = getStyleName(layer, map.meta(META_HOVER), layer)
+          featureStyle.setLayerStyle(layer, styleName)
+          if (changeViewMethod && changeViewMethod in map) {
+            console.log(changeViewMethod, layer.getLatLng())
+            map[changeViewMethod](layer.getLatLng(), ...zoomArgs)
+          } else if (changeViewMethod) {
+            throw new Error("No map method " + changeViewMethod)
+          }
+        }
+      },
+      panToLayerLng(layer) {
+        const { map } = this.get()
+        // latitude of the map, but longitude of the layer, so this pans only
+        // horizontally (so its called "center vertically")
+        this.panToTwoObjects(map.getCenter(), layer.getLatLng())
+      },
+      panToLayerLat(layer) {
+        const { map } = this.get()
+        // cf. panToLayerLng
+        this.panToTwoObjects(layer.getLatLng(), map.getCenter())
+      },
+      panToLayer(layer) {
+        console.warn('@todo pan only if the map does not already contain the layer')
+        const { map } = this.get()
+        map.panTo(layer.getLatLng(), {
+          duration: 0.6
+        })
+      },
+      panToTwoObjects({ lat }, { lng }) {
+        const { map } = this.get()
+        map.panTo(L.latLng(lat, lng), {
+          duration: 0.3
+        })
+      },
+      applyActiveArea(params) {
+        const { map } = this.get()
+        const css = Object.assign({position:'absolute'}, params)
+        console.log('apply active area', JSON.stringify(css))
+        map.setActiveArea(css)
+      }
+    }
+  }
+</script>
