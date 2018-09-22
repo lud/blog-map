@@ -18,6 +18,7 @@ define('WPMAP_VISIBILITY_NODISPLAY', 0); // Do not show on map
 
 require_once dirname(__FILE__) . '/src/php/WpMap_AdminPage.php';
 require_once dirname(__FILE__) . '/src/php/WpMap_Widget.php';
+require_once dirname(__FILE__) . '/src/php/WpMap_PostQuery.php';
 
 
 
