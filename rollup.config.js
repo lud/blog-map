@@ -64,7 +64,7 @@ function createConfig(config) {
 
 export default [
   createConfig({
-    input: 'src/js/app.js',
+    input: 'src/js/client/app.js',
     output: {
       sourcemap: true,
       format: 'iife',
@@ -74,7 +74,7 @@ export default [
     }
   }),
   createConfig({
-    input: 'src/js/admin-app.js',
+    input: 'src/js/admin/app.js',
     output: {
       sourcemap: true,
       format: 'iife',

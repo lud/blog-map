@@ -39,7 +39,7 @@ class WpMap_PostQuery {
     public function all()
     {
         $sql = $this->buildSqlForQuery();
-        var_dump($sql);
+        // @todo cast the types ! posts ids are string ATM
         return $this->wpdb->get_results($sql);
     }
 
@@ -80,7 +80,19 @@ class WpMap_PostQuery {
             self::POST_TABLE_ALIAS
         );
 
-        $sqlSELECT = "\nSELECT\n  " . implode(",\n  ", $tpPostFields);
+        $sqlPostFields = array();
+
+        foreach ($tpPostFields as $alias => $prefixed) {
+            $pf = $prefixed;
+            if (is_string($alias)) {
+                // @todo alias here must be escaped
+                $pf .= ' as `' . self::safeSqlAlias($alias) . '`';
+            }
+            $sqlPostFields[] = $pf;
+        }
+
+        $sqlSELECT = "\nSELECT\n  " . implode(",\n  ", $sqlPostFields);
+
         foreach ($this->buildMetaFields() as $mf) {
             $field = self::setTablePrefix($mf['field'], $mf['tableAlias']);
             $alias = $mf['alias'];
@@ -189,8 +201,6 @@ class WpMap_PostQuery {
         $sqlFROM = $this->buildFromClause($statementParamsRef);
         $sqlWHERE = $this->buildWhereClause($statementParamsRef);
 
-        var_dump($statementParamsRef);
-
         $sql = implode("", array($sqlSELECT, $sqlFROM, $sqlWHERE)) . "\n";
 
         $prepared = call_user_func_array(
@@ -202,8 +212,8 @@ class WpMap_PostQuery {
 
     private static function setAllTablePrefix($fields, $table) {
         $tps = array();
-        foreach ($fields as $f) {
-            $tps[] = self::setTablePrefix($f, $table);
+        foreach ($fields as $k => $f) {
+            $tps[$k] = self::setTablePrefix($f, $table);
         }
         return $tps;
     }
@@ -217,6 +227,13 @@ class WpMap_PostQuery {
         foreach ($values as $val) {
             $arrayByRef[] = $val;
         }
+    }
+
+    private static function safeSqlAlias(string $alias) {
+        if (preg_match('/[^a-zA-Z0-9_]/', $alias)) {
+            throw new Exception("Alias $alias is invalid");
+        }
+        return $alias;
     }
 }
 

@@ -1,0 +1,22 @@
+<div class="wpmap-admin">
+    {#if $posts.length === 0}
+        {#if $initLoaded}
+            <p>No post available</p>
+        {:else}
+            Loading ...
+            <LoadingSpinner/>
+        {/if}
+    {:else}
+        <WpMapPostList/>
+    {/if}
+</div>
+
+<script>
+import WpMapPostList from './WpMapPostList.html'
+import LoadingSpinner from './wp/LoadingSpinner.html'
+
+export default {
+    components: { WpMapPostList, LoadingSpinner }
+}
+
+</script>

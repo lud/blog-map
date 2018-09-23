@@ -1,0 +1,34 @@
+<div class="wpmap-admin-posts-list">
+    {#each $posts as post (post.ID)}
+        <div class="wpmap-admin-posts-list-item">
+            <span>{post.title}</span>
+            <span>{post.wpmap_visibility}</span>
+            <!-- <pre>{JSON.stringify(post, 0, ' ')}</pre> -->
+            <ToggleSwitch
+                checked="{post.wpmap_visibility === WPMAP_VISIBILITY_ONMAP}"
+                on="{WPMAP_VISIBILITY_ONMAP}"
+                off="{WPMAP_VISIBILITY_NOTONMAP}"
+                on:change="$actTogglePostVisibility(post.ID, event)"/>
+        </div>
+    {/each}
+</div>
+
+<script>
+import ToggleSwitch from './wp/ToggleSwitch.html'
+
+const WPMAP_VISIBILITY_ONMAP = 'on-map' // Show on map
+const WPMAP_VISIBILITY_NOTONMAP = 'not-on-map' // Do not show on map
+
+export default {
+    data() {
+        return {
+            WPMAP_VISIBILITY_ONMAP,
+            WPMAP_VISIBILITY_NOTONMAP
+        }
+    },
+    components: { ToggleSwitch },
+    methods: {
+    }
+}
+
+</script>
