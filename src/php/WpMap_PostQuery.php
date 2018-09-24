@@ -14,7 +14,7 @@ class WpMap_PostQuery {
     const POST_STATUS_PUBLISHED = 'publish';
 
     private $wpdb;
-    private $postFields = array();
+    private $postColumns = array();
     private $metaKeys = array();
     private $_metaFieldsCache = null;
 
@@ -25,7 +25,12 @@ class WpMap_PostQuery {
 
     public function select(array $fields)
     {
-        $this->postFields = array_merge($this->postFields, $fields);
+        foreach ($fields as $alias => $column) {
+            // is a string alias is provided we keep it, if its a numeric array
+            // key we just use the column as alias
+            $alias = is_string($alias) ? $alias : $column;
+            $this->postColumns[$alias] = $column;
+        }
         return $this;
     }
 
@@ -40,7 +45,11 @@ class WpMap_PostQuery {
     {
         $sql = $this->buildSqlForQuery();
         // @todo cast the types ! posts ids are string ATM
-        return $this->wpdb->get_results($sql);
+        $recordSet = [];
+        foreach ($this->wpdb->get_results($sql) as $record) {
+            $recordSet[] = $this->castAllValues($record);
+        }
+        return $recordSet;
     }
 
     private function buildMetaFields()
@@ -75,28 +84,24 @@ class WpMap_PostQuery {
 
         // Building all the base data : fields, table and prefixes for joins
 
-        $tpPostFields = self::setAllTablePrefix(
-            $this->postFields,
+        $tpPostColumns = self::setAllTablePrefix(
+            $this->postColumns,
             self::POST_TABLE_ALIAS
         );
 
-        $sqlPostFields = array();
+        $sqlPostColumns = array();
 
-        foreach ($tpPostFields as $alias => $prefixed) {
-            $pf = $prefixed;
-            if (is_string($alias)) {
-                // @todo alias here must be escaped
-                $pf .= ' as `' . self::safeSqlAlias($alias) . '`';
-            }
-            $sqlPostFields[] = $pf;
+        foreach ($tpPostColumns as $alias => $prefixed) {
+            $pf = $prefixed . ' as `' . self::safeSqlAlias($alias) . '`';
+            $sqlPostColumns[] = $pf;
         }
 
-        $sqlSELECT = "\nSELECT\n  " . implode(",\n  ", $sqlPostFields);
+        $sqlSELECT = "\nSELECT\n  " . implode(",\n  ", $sqlPostColumns);
 
         foreach ($this->buildMetaFields() as $mf) {
             $field = self::setTablePrefix($mf['field'], $mf['tableAlias']);
             $alias = $mf['alias'];
-            $sqlSELECT .= ",\n  $field as $alias";
+            $sqlSELECT .= ",\n  $field as `$alias`";
         }
 
         return $sqlSELECT;
@@ -190,7 +195,7 @@ class WpMap_PostQuery {
 
     private function buildSqlForQuery()
     {
-        $postFields = $this->postFields;
+        $postColumns = $this->postColumns;
         $metaKeys = $this->metaKeys;
 
         // $statementParamsRef bindings for SQL prepare, will be passed by
@@ -207,6 +212,7 @@ class WpMap_PostQuery {
             array($this->wpdb, 'prepare'),
             array_merge(array($sql), $statementParamsRef)
         );
+        var_dump($prepared);
         return $prepared;
     }
 
@@ -234,6 +240,37 @@ class WpMap_PostQuery {
             throw new Exception("Alias $alias is invalid");
         }
         return $alias;
+    }
+
+    private function castAllValues($record)
+    {
+        foreach ($this->postColumns as $alias => $column) {
+            $record->$alias = $this->castPostColumn($column, $record->$alias);
+        }
+        foreach ($this->metaKeys as $key) {
+            $record->$key = $this->castMetaValue($key, $record->$key);
+        }
+        return $record;
+    }
+
+    protected function castPostColumn($column, $value)
+    {
+        echo "cast col $column: $value\n";
+        switch ($column) {
+            case 'ID':
+                return intval($value);
+        }
+        return $value;
+    }
+
+    protected function castMetaValue($key, $value)
+    {
+        echo "cast meta $key: $value\n";
+        switch ($key) {
+            case 'wpmap_visibility':
+                return json_decode($value);
+        }
+        return $value;
     }
 }
 
