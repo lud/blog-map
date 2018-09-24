@@ -1,14 +1,17 @@
 <div class="wpmap-admin-posts-list">
-    {#each $posts as post (post.ID)}
+    {#each $rawPosts as post (post._id)}
         <div class="wpmap-admin-posts-list-item">
-            <span>{post.title}</span>
-            <span>{post.wpmap_visibility}</span>
+            <span>#{post._id}</span>
+            <span>{post.props.title}</span>
+            <span>{post.meta.wpmap_visibilities}</span>
             <!-- <pre>{JSON.stringify(post, 0, ' ')}</pre> -->
             <ToggleSwitch
-                checked="{post.wpmap_visibility === WPMAP_VISIBILITY_ONMAP}"
-                on="{WPMAP_VISIBILITY_ONMAP}"
-                off="{WPMAP_VISIBILITY_NOTONMAP}"
-                on:change="$actTogglePostVisibility(post.ID, event)"/>
+                checked="{post.meta.wpmap_visibilities[$mapId] === WPMAP_VIS_ONMAP}"
+                on="{WPMAP_VIS_ONMAP}"
+                off="{WPMAP_VIS_NOTONMAP}"
+                on:change="$actTogglePostVisibilities(post._id, event)"/>
+            <span>{post.meta.wpmap_latlng}</span>
+            <span>{post.meta.wpmap_geocoded}</span>
         </div>
     {/each}
 </div>
@@ -16,18 +19,22 @@
 <script>
 import ToggleSwitch from './wp/ToggleSwitch.html'
 
-const WPMAP_VISIBILITY_ONMAP = 'on-map' // Show on map
-const WPMAP_VISIBILITY_NOTONMAP = 'not-on-map' // Do not show on map
+const WPMAP_VIS_ONMAP = 1 // Show on map
+const WPMAP_VIS_NOTONMAP = 0 // Do not show on map
 
 export default {
     data() {
         return {
-            WPMAP_VISIBILITY_ONMAP,
-            WPMAP_VISIBILITY_NOTONMAP
+            WPMAP_VIS_ONMAP,
+            WPMAP_VIS_NOTONMAP
         }
     },
     components: { ToggleSwitch },
-    methods: {
+    helpers: {
+        cls(header, x) {
+            console.log(header, x)
+            return x
+        }
     }
 }
 

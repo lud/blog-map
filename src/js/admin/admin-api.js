@@ -29,7 +29,6 @@ export function getPostsConfig() {
   return api
     .get('getPostsConfig')
     .then(resp => {
-      console.log('resp', resp.data.data)
       const posts = resp.data.data
       return posts
     })
@@ -42,7 +41,6 @@ export function patchPost(postID, changeset) {
       changeset
     })
     .then(resp => {
-      console.log('resp', resp.data.data)
       const post = resp.data.data
       return post
     })

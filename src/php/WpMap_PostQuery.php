@@ -12,10 +12,12 @@ class WpMap_PostQuery {
     const POST_TYPE_POST = 'post';
     const POST_TYPE_PAGE = 'page';
     const POST_STATUS_PUBLISHED = 'publish';
+    const POST_KEY = '_id';
 
     private $wpdb;
     private $postColumns = array();
     private $metaKeys = array();
+    private $whereConditions = array();
     private $_metaFieldsCache = null;
 
     public function __construct(wpdb $wpdb)
@@ -29,6 +31,8 @@ class WpMap_PostQuery {
             // is a string alias is provided we keep it, if its a numeric array
             // key we just use the column as alias
             $alias = is_string($alias) ? $alias : $column;
+            self::safeSqlField($column);
+            self::safeSqlField($alias);
             $this->postColumns[$alias] = $column;
         }
         return $this;
@@ -36,8 +40,20 @@ class WpMap_PostQuery {
 
     public function withMeta(array $keys)
     {
+        foreach ($keys as $k) {
+            self::safeSqlField($k);
+        }
         $this->_metaFieldsCache = null; // clear cache
         $this->metaKeys = array_merge($this->metaKeys, $keys);
+        return $this;
+    }
+
+    public function where(array $conditions)
+    {
+        foreach ($conditions as $column => $unsafeValue) {
+            self::safeSqlField($column);
+            $this->whereConditions[] = compact('column', 'unsafeValue');
+        }
         return $this;
     }
 
@@ -47,7 +63,7 @@ class WpMap_PostQuery {
         // @todo cast the types ! posts ids are string ATM
         $recordSet = [];
         foreach ($this->wpdb->get_results($sql) as $record) {
-            $recordSet[] = $this->castAllValues($record);
+            $recordSet[] = $this->recordToPost($record);
         }
         return $recordSet;
     }
@@ -89,10 +105,16 @@ class WpMap_PostQuery {
             self::POST_TABLE_ALIAS
         );
 
+        $tpPrimary = self::setTablePrefix(
+            self::POST_PRIMARY_KEY,
+            self::POST_TABLE_ALIAS
+        );
+
+        $tpPostColumns[self::POST_KEY] = $tpPrimary;
         $sqlPostColumns = array();
 
         foreach ($tpPostColumns as $alias => $prefixed) {
-            $pf = $prefixed . ' as `' . self::safeSqlAlias($alias) . '`';
+            $pf = $prefixed . ' as `' . $alias . '`';
             $sqlPostColumns[] = $pf;
         }
 
@@ -143,6 +165,65 @@ class WpMap_PostQuery {
         return $sqlFROM;
     }
 
+    private static function buildWhereClause(array & $statementParamsRef, $filters = array())
+    {
+
+        $sqlWHERE = "\nWHERE 1=1";
+
+        // -- post conditions
+
+        $usedColumns = array();
+
+        if (count($filters)) {
+            foreach ($filters as $condition) {
+                $column = $condition['column'];
+                $usedColumns[$column] = true;
+                $sqlItem = self::buildSqlWhereItem($condition, $statementParamsRef);
+                $sqlWHERE .= "\n  AND $sqlItem";
+             }
+        }
+
+        // -- post types
+
+        if (!isset($usedColumns[self::POST_COLUMN_POST_TYPE])) {
+            $sqlINtypes = self::buildSqlWhereItem(
+                array(
+                    'column' => self::POST_COLUMN_POST_TYPE,
+                    'unsafeValue' => array(self::POST_TYPE_POST)),
+                $statementParamsRef);
+            $sqlWHERE .= "\n  AND $sqlINtypes";
+         }
+
+        // -- post statuses
+
+        if (!isset($usedColumns[self::POST_COLUMN_POST_STATUS])) {
+            $sqlINstatuses = self::buildSqlWhereItem(
+                array(
+                    'column' => self::POST_COLUMN_POST_STATUS,
+                    'unsafeValue' => array(self::POST_STATUS_PUBLISHED)),
+                $statementParamsRef);
+            $sqlWHERE .= "\n  AND $sqlINstatuses";
+        }
+
+        return $sqlWHERE;
+    }
+
+    private static function buildSqlWhereItem($condition, &$statementParamsRef)
+    {
+        $column = $condition['column'];
+        $tpCol = $tpPostStatus = self::setTablePrefix($column, self::POST_TABLE_ALIAS);
+        $unsafeValue = $condition['unsafeValue'];
+        if (is_array($unsafeValue)) {
+            $sqlIN = self::buildWhereInClause($tpCol, $unsafeValue);
+            self::arrayPushAll($statementParamsRef, $unsafeValue);
+            return $sqlIN;
+        } else {
+            $sqlEqual = "$tpCol = %s";
+            $statementParamsRef[] = $unsafeValue;
+            return $sqlEqual;
+        }
+    }
+
     private static function buildWhereInClause($field, $count)
     {
         if (is_array($count)) {
@@ -157,42 +238,6 @@ class WpMap_PostQuery {
         }
     }
 
-    private static function setDefaultWhereClauseFilters(array $filters)
-    {
-        $defaults = array(
-            'postTypes' => array(self::POST_TYPE_POST),
-            'postStatuses' => array(self::POST_STATUS_PUBLISHED)
-        );
-        $filters = array_merge($defaults, $filters);
-        // ensure some filters contain arrays
-        $arrayValues = array('postTypes', 'postStatuses');
-        foreach ($arrayValues as $key) {
-            $filters[$key] = (array) $filters[$key];
-        }
-        return $filters;
-    }
-
-    private static function buildWhereClause(array & $statementParamsRef, $filters = array())
-    {
-
-        $filters = self::setDefaultWhereClauseFilters($filters);
-
-        // -- post types
-
-        $tpPostType = self::setTablePrefix(self::POST_COLUMN_POST_TYPE, self::POST_TABLE_ALIAS);
-        $sqlINtypes = self::buildWhereInClause($tpPostType, $filters['postTypes']);
-        self::arrayPushAll($statementParamsRef, $filters['postTypes']);
-
-        // -- post statuses
-
-        $tpPostStatus = self::setTablePrefix(self::POST_COLUMN_POST_STATUS, self::POST_TABLE_ALIAS);
-        $sqlINstatuses = self::buildWhereInClause($tpPostStatus, $filters['postStatuses']);
-        self::arrayPushAll($statementParamsRef, $filters['postStatuses']);
-
-        $sqlWHERE = "\nWHERE\n     $sqlINtypes\n AND $sqlINstatuses";
-        return $sqlWHERE;
-    }
-
     private function buildSqlForQuery()
     {
         $postColumns = $this->postColumns;
@@ -204,7 +249,7 @@ class WpMap_PostQuery {
 
         $sqlSELECT = $this->buildSelectClause();
         $sqlFROM = $this->buildFromClause($statementParamsRef);
-        $sqlWHERE = $this->buildWhereClause($statementParamsRef);
+        $sqlWHERE = $this->buildWhereClause($statementParamsRef, $this->whereConditions);
 
         $sql = implode("", array($sqlSELECT, $sqlFROM, $sqlWHERE)) . "\n";
 
@@ -212,7 +257,9 @@ class WpMap_PostQuery {
             array($this->wpdb, 'prepare'),
             array_merge(array($sql), $statementParamsRef)
         );
-        var_dump($prepared);
+
+        // rr($prepared);
+
         return $prepared;
     }
 
@@ -224,7 +271,8 @@ class WpMap_PostQuery {
         return $tps;
     }
 
-    private static function setTablePrefix($field, $table) {
+    private static function setTablePrefix($field, $table)
+    {
         return "$table.$field";
     }
 
@@ -235,27 +283,33 @@ class WpMap_PostQuery {
         }
     }
 
-    private static function safeSqlAlias(string $alias) {
+    private static function safeSqlField(string $alias)
+    {
         if (preg_match('/[^a-zA-Z0-9_]/', $alias)) {
             throw new Exception("Alias $alias is invalid");
         }
         return $alias;
     }
 
-    private function castAllValues($record)
+    private function recordToPost($record)
     {
+        $props = new stdClass;;
         foreach ($this->postColumns as $alias => $column) {
-            $record->$alias = $this->castPostColumn($column, $record->$alias);
+            $props->$alias = $this->unserializePostColumn($column, $record->$alias);
         }
+        $meta = new stdClass;;
         foreach ($this->metaKeys as $key) {
-            $record->$key = $this->castMetaValue($key, $record->$key);
+            $meta->$key = $this->unserializePostMeta($key, $record->$key);
         }
-        return $record;
+        return (object) array(
+            self::POST_KEY => intval($record->{self::POST_KEY}),
+            'props' => $props,
+            'meta' => $meta
+        );
     }
 
-    protected function castPostColumn($column, $value)
+    public static function unserializePostColumn($column, $value)
     {
-        echo "cast col $column: $value\n";
         switch ($column) {
             case 'ID':
                 return intval($value);
@@ -263,12 +317,24 @@ class WpMap_PostQuery {
         return $value;
     }
 
-    protected function castMetaValue($key, $value)
+    public static function serializePostMeta($key, $value)
     {
-        echo "cast meta $key: $value\n";
         switch ($key) {
-            case 'wpmap_visibility':
-                return json_decode($value);
+            case 'wpmap_visibilities':
+                if (!is_array($value)) {
+                    $value = array();
+                }
+                $value = json_encode($value);
+        }
+        return $value;
+    }
+
+    public static function unserializePostMeta($key, $value)
+    {
+        switch ($key) {
+            case 'wpmap_visibilities':
+                $value = json_decode($value);
+                if (null === $value) return array();
         }
         return $value;
     }

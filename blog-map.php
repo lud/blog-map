@@ -13,8 +13,8 @@ defined('ABSPATH') or exit();
 define('WPMAP_VERSION', WP_DEBUG ? time() : '0.0.1');
 
 // Visibility constants
-define('WPMAP_VISIBILITY_ONMAP', 'on-map'); // Show on map
-define('WPMAP_VISIBILITY_NOTONMAP', 'not-on-map'); // Do not show on map
+define('WPMAP_VIS_ONMAP', 1); // Show on map
+define('WPMAP_VIS_NOTONMAP', 0); // Do not show on map
 
 require_once dirname(__FILE__) . '/src/php/WpMap_AdminPage.php';
 require_once dirname(__FILE__) . '/src/php/WpMap_Widget.php';

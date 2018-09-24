@@ -22,16 +22,26 @@ class WpMap_AdminPage {
         echo "\n".'<div id="wpmap-admin-app"></div>';
     }
 
-    private function getAllPosts()
+    private function getAllPosts($conditions = array())
     {
         global $wpdb;
         $postFields = array('ID', 'title' => 'post_title', 'url' => 'guid', 'status' => 'post_status', 'type' => 'post_type');
-        $metaKeys = array('wpmap_visibility', 'wpmap_latlng', 'wpmap_geocoded');
+        $metaKeys = array('wpmap_visibilities', 'wpmap_latlng', 'wpmap_geocoded');
         $query = new WpMap_PostQuery($wpdb);
         return $query
             ->select($postFields)
             ->withMeta($metaKeys)
+            ->where($conditions)
             ->all();
+    }
+
+    private function getPostById($id)
+    {
+        $posts = $this->getAllPosts(array('ID' => $id));
+        if (!count($posts) === 1) {
+            trigger_error('@todo');
+        }
+        return reset($posts);
     }
 
     private static function ajaxRoutes()
@@ -74,13 +84,16 @@ class WpMap_AdminPage {
         try {
             $response = $instance->callAction($action, $requestMethod);
             if (is_string($response)) {
-                echo json_encode(array('data' => $response), JSON_PRETTY_PRINT);
-            } elseif (is_array($response)) {
-                echo json_encode(array('data' => $response), JSON_PRETTY_PRINT);
+                echo json_encode(array('data' => $response));
+            } elseif (is_array($response) || is_object($response)) {
+                echo json_encode(array('data' => $response));
             } elseif (null === $response) {
                 echo '{data: "ok"}';
             } else {
-                throw new Exception("Bad ajax return value in $method");
+                if (WP_DEBUG) {
+                    var_dump($response);
+                }
+                throw new Exception("Bad ajax return value in $action");
             }
             wp_die();
         } catch (Eception $e) {
@@ -109,11 +122,16 @@ class WpMap_AdminPage {
 
     public function patchPost($payload)
     {
+        if (!isset($payload['postID'])
+         || !is_integer($payload['postID'])
+         || ! get_post($payload['postID'])) {
+            die('@todo 404');
+        }
+        $postID = $payload['postID'];
         $changeset = $payload['changeset'];
-        $changesetMeta = isset($changeset['_meta'])
-            ? $changeset['_meta']
+        $changesetMeta = isset($changeset['meta'])
+            ? $changeset['meta']
             : array();
-        unset($changeset['_meta']);
 
         // -- Meta --
 
@@ -123,25 +141,40 @@ class WpMap_AdminPage {
         }
 
         // then save all
-        $postID = $payload['postID'];
         foreach ($changesetMeta as $key => $value) {
-            update_post_meta($postID, $key, $value);
+            $serialized = WpMap_PostQuery::serializePostMeta($key, $value);
+            update_post_meta($postID, $key, $serialized);
         }
-
+        return $this->getPostById($postID);
     }
 
+    // private static function ensureAthorizedMeta($key, $value) {
+    //     if (!self::isAthorizedMeta($key, $value)) {
+    //         $dump = var_export($value, 1);
+    //         throw new Exception("Unauthorized meta change '$key' = $dump");
+    //     }
+    // }
+
     private static function ensureAthorizedMeta($key, $value) {
-        $auth = false;
         switch ($key) {
-            case 'wpmap_visibility':
-                $auth = in_array($value, array(
-                    WPMAP_VISIBILITY_ONMAP,
-                    WPMAP_VISIBILITY_NOTONMAP
-                ));
-                break;
-        }
-        if (!$auth) {
-            throw new Exception("Unauthorized meta change '$key' = '$value'");
+            case 'wpmap_visibilities':
+                if (!is_array($value)) {
+                    throw new \Exception("Visibilities must be an array");
+                }
+                $accepted = array(WPMAP_VIS_ONMAP, WPMAP_VIS_NOTONMAP);
+                foreach ($value as $map => $visibility) {
+                    if (!in_array($visibility, $accepted)) {
+                        $visibility = var_export($visibility, 1);
+                        throw new \Exception("Bad visibility $visibility");
+                    }
+                    if (preg_match('/[^a-zA-Z0-9_-]/', $map)) {
+                        $map = var_export($map, 1);
+                        throw new \Exception("Bad map key $map");
+                    }
+                }
+                return true;
+            default:
+                throw new \Exception("Unauthorized meta key $key");
         }
     }
 

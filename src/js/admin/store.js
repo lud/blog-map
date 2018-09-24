@@ -5,6 +5,9 @@ import {
   getPostsConfig,
   patchPost
 } from './admin-api'
+import * as list from '../helpers/list.js'
+
+const PID = '_id'
 
 class Store extends BaseStore {
 
@@ -14,12 +17,12 @@ class Store extends BaseStore {
 
     // initial data
     this.set({
-      initLoaded: false
+      initLoaded: false,
+      mapId: 'default-map'
     })
 
     // computations
     this.compute('posts', ['rawPosts'], (rawPosts) => {
-      console.log('rawPosts', rawPosts)
       return rawPosts
     })
   }
@@ -36,28 +39,32 @@ class Store extends BaseStore {
 
   getPost(postID) {
     const { posts } = this.get()
-    for(let i = 0; i < posts.length; i++) {
-        if (posts[i].ID === postID) {
-            return posts[i]
-        }
-    }
-    throw new Error("Post not found : " + postID.toString())
+    return list.keyFindOrFail(posts, PID, postID)
   }
 
-  actTogglePostVisibility(postID, visibility) {
+  setFetchedPost(post) {
+    let { rawPosts } = this.get()
+    rawPosts = list.keyReplace(rawPosts, PID, post._id, post)
+    this.set({ rawPosts })
+  }
+
+  actTogglePostVisibilities(postID, visibility) {
     // No need to update the post in the state as this comes from
     // an input so it has already its current value. But if the
     // update fails, we must revert the current post to its server
     // side state
-    const currentPost = this.getPost(postID)
+    const post = this.getPost(postID)
+    const newVisibilities = Object.assign({}, post.meta.wpmap_visibilities, {
+        [this.get().mapId]: visibility
+    })
     patchPost(postID, {
-        _meta: {
-            wpmap_visibility: visibility
+        meta: {
+            wpmap_visibilities: newVisibilities
         }
       })
       .then(
-        data => this.updatePost(postID, data),
-        err => this.updatePost(postID, currentPost)
+        data => this.setFetchedPost(data),
+        err => this.setFetchedPost(post)
       )
   }
 }
