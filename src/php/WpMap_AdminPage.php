@@ -39,9 +39,9 @@ class WpMap_AdminPage {
 
     private function queryPosts(array $postFields = null, array $metaKeys = null, array $conditions = array())
     {
-            if (null === $postFields) $postFields = $this->defaultQueryPostFields;
-            if (null === $metaKeys) $metaKeys = $this->defaultQueryMetaKeys;
         global $wpdb;
+        if (null === $postFields) { $postFields = $this->defaultQueryPostFields; }
+        if (null === $metaKeys) { $metaKeys = $this->defaultQueryMetaKeys; }
         $query = new WpMap_PostQuery($wpdb);
         return $query
             ->select($postFields)
@@ -107,10 +107,10 @@ class WpMap_AdminPage {
             } elseif (null === $response) {
                 echo '{data: "ok"}';
             } else {
-                if (WP_DEBUG) {
-                    var_dump($response);
-                }
-                throw new Exception("Bad ajax return value in $action");
+                $returned = WP_DEBUG
+                    ? var_export($response, true)
+                    : '-- value hidden in production --';
+                throw new Exception("Bad ajax return value in $action() :\n$returned\n");
             }
             wp_die();
         } catch (Eception $e) {

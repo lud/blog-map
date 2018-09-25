@@ -201,25 +201,25 @@ class WpMap_PostQuery {
 
         // -- post types
 
-        if (!isset($usedColumns[self::POST_COLUMN_POST_TYPE])) {
-            $sqlINtypes = self::buildSqlWhereItem(
-                array(
-                    'column' => self::POST_COLUMN_POST_TYPE,
-                    'unsafeValue' => array(self::POST_TYPE_POST)),
-                $statementParamsRef);
-            $sqlWHERE .= "\n  AND $sqlINtypes";
-         }
+        // if (!isset($usedColumns[self::POST_COLUMN_POST_TYPE])) {
+        //     $sqlINtypes = self::buildSqlWhereItem(
+        //         array(
+        //             'column' => self::POST_COLUMN_POST_TYPE,
+        //             'unsafeValue' => array(self::POST_TYPE_POST)),
+        //         $statementParamsRef);
+        //     $sqlWHERE .= "\n  AND $sqlINtypes";
+        //  }
 
-        // -- post statuses
+        // // -- post statuses
 
-        if (!isset($usedColumns[self::POST_COLUMN_POST_STATUS])) {
-            $sqlINstatuses = self::buildSqlWhereItem(
-                array(
-                    'column' => self::POST_COLUMN_POST_STATUS,
-                    'unsafeValue' => array(self::POST_STATUS_PUBLISHED)),
-                $statementParamsRef);
-            $sqlWHERE .= "\n  AND $sqlINstatuses";
-        }
+        // if (!isset($usedColumns[self::POST_COLUMN_POST_STATUS])) {
+        //     $sqlINstatuses = self::buildSqlWhereItem(
+        //         array(
+        //             'column' => self::POST_COLUMN_POST_STATUS,
+        //             'unsafeValue' => array(self::POST_STATUS_PUBLISHED)),
+        //         $statementParamsRef);
+        //     $sqlWHERE .= "\n  AND $sqlINstatuses";
+        // }
 
         return $sqlWHERE;
     }

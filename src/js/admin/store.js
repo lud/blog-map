@@ -9,6 +9,22 @@ import * as list from '../helpers/list.js'
 
 const PID = '_id'
 
+function simpleSorter(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0
+}
+
+// Seamless Immutable sort
+function sort(array, comparator = simpleSorter) {
+    array = array.slice()
+    return array.sort(comparator)
+}
+
+function sortBy(fn, desc) {
+  return desc
+    ? (a, b) => simpleSorter(fn(b), fn(a))
+    : (a, b) => simpleSorter(fn(a), fn(b))
+}
+
 class Store extends BaseStore {
 
   constructor(state = {}, options) {
@@ -18,7 +34,8 @@ class Store extends BaseStore {
     // initial data
     this.set({
       initLoaded: false,
-      mapId: 'default-map'
+      mapId: 'default-map',
+      sortProp: null
     })
 
     // computations
@@ -35,6 +52,17 @@ class Store extends BaseStore {
           initLoaded: true
         })
       })
+  }
+
+  sortBy(sortProp) {
+    // We will sort the rawPosts instead of sorting on computed
+    // "posts" so we only sort once sortBy() is called
+    const { rawPosts, sortProp: previous } = this.get()
+    const desc = sortProp === previous
+    console.log('from rawPosts', rawPosts)
+    const sorted = sort(rawPosts, sortBy(p => p.props[sortProp], desc))
+    console.log('sorted', sorted.map(p => p.props[sortProp]).join(','))
+    this.set({ rawPosts: sorted, sortProp: desc ? null : sortProp })
   }
 
   getPost(postID) {
@@ -71,6 +99,7 @@ class Store extends BaseStore {
 
 const store = new Store()
 
-store
+console.warn('@todo do not publish in window in prod')
+window.store = store
 
 export default store

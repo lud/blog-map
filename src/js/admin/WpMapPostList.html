@@ -1,19 +1,36 @@
 <div class="wpmap-admin-posts-list">
-    {#each $rawPosts as post (post._id)}
-        <div class="wpmap-admin-posts-list-item">
-            <span>#{post._id}</span>
-            <span>{post.props.title}</span>
-            <span>{post.meta.wpmap_visibilities}</span>
+    <table>
+    <tr>
+        <th>#</th>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Vis</th>
+        <th>Visible</th>
+        <th>Location</th>
+        <th>Coords</th>
+    </tr>
+    {#each $posts as post}
+        <tr class="wpmap-admin-posts-list-item">
+
+            <td>{post._id}</td>
+            <td>{post.props.title}</td>
+            <td>{post.props.type}</td>
+            <td>{post.props.status}</td>
+            <td>{JSON.stringify(post.meta.wpmap_visibilities)}</td>
             <!-- <pre>{JSON.stringify(post, 0, ' ')}</pre> -->
-            <ToggleSwitch
-                checked="{post.meta.wpmap_visibilities[$mapId] === WPMAP_VIS_ONMAP}"
-                on="{WPMAP_VIS_ONMAP}"
-                off="{WPMAP_VIS_NOTONMAP}"
-                on:change="$actTogglePostVisibilities(post._id, event)"/>
-            <span>{post.meta.wpmap_latlng}</span>
-            <span>{post.meta.wpmap_geocoded}</span>
-        </div>
+            <td>
+                <ToggleSwitch
+                    checked="{post.meta.wpmap_visibilities[$mapId] === WPMAP_VIS_ONMAP}"
+                    on="{WPMAP_VIS_ONMAP}"
+                    off="{WPMAP_VIS_NOTONMAP}"
+                    on:change="$actTogglePostVisibilities(post._id, event)"/>
+            </td>
+            <td>{post.meta.wpmap_geocoded}</td>
+            <td>{post.meta.wpmap_latlng}</td>
+        </tr>
     {/each}
+    </table>
 </div>
 
 <script>
@@ -23,6 +40,7 @@ const WPMAP_VIS_ONMAP = 1 // Show on map
 const WPMAP_VIS_NOTONMAP = 0 // Do not show on map
 
 export default {
+    immutable: true,
     data() {
         return {
             WPMAP_VIS_ONMAP,
@@ -39,3 +57,13 @@ export default {
 }
 
 </script>
+
+<style>
+    th {
+        text-align: left;
+    }
+    th:first-child, td:first-child {
+        text-align: right;
+        font-family: monospace;
+    }
+</style>
