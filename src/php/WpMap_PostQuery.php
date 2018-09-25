@@ -12,6 +12,8 @@ class WpMap_PostQuery {
     const POST_TYPE_POST = 'post';
     const POST_TYPE_PAGE = 'page';
     const POST_STATUS_PUBLISHED = 'publish';
+    const POST_STATUS_DRAFT = 'draft';
+    const POST_STATUS_PRIVATE = 'private';
     const POST_KEY = '_id';
 
     private $wpdb;
@@ -50,9 +52,23 @@ class WpMap_PostQuery {
 
     public function where(array $conditions)
     {
-        foreach ($conditions as $column => $unsafeValue) {
-            self::safeSqlField($column);
-            $this->whereConditions[] = compact('column', 'unsafeValue');
+        foreach ($conditions as $key => $value) {
+            if (is_integer($key)
+             && is_array($value)
+             && isset($value['column'])
+             && isset($value['unsafeValue'])) {
+                // already a formated condition
+                self::safeSqlField($value['column']);
+                $this->whereConditions[] = $value;
+            } elseif (is_string($key)) {
+                self::safeSqlField($key);
+                $this->whereConditions[] = array(
+                    'column' => $key,
+                    'unsafeValue' => $value
+                );
+            } else {
+                trigger_error('@todo bad condition');
+            }
         }
         return $this;
     }

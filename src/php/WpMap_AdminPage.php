@@ -5,8 +5,23 @@ defined('ABSPATH') or exit();
 
 class WpMap_AdminPage {
 
+    private $defaultQueryPostFields;
+    private $defaultQueryMetaKeys;
+    private $defaultQueryConditions;
+
     private function __construct()
     {
+        // This should be class constants but as we want to store arrays, and as
+        // worpress wants to be as retrocompatible as possible, we use
+        // properties. @todo check minimum PHP version for all features
+        $this->defaultQueryPostFields = array(
+            'ID',
+            'title'  => 'post_title',
+            'url'    => 'guid',
+            'status' => 'post_status',
+            'type'   => 'post_type'
+        );
+        $this->defaultQueryMetaKeys = array('wpmap_visibilities', 'wpmap_latlng', 'wpmap_geocoded');
     }
 
     public static function render()
@@ -22,11 +37,11 @@ class WpMap_AdminPage {
         echo "\n".'<div id="wpmap-admin-app"></div>';
     }
 
-    private function getAllPosts($conditions = array())
+    private function queryPosts(array $postFields = null, array $metaKeys = null, array $conditions = array())
     {
+            if (null === $postFields) $postFields = $this->defaultQueryPostFields;
+            if (null === $metaKeys) $metaKeys = $this->defaultQueryMetaKeys;
         global $wpdb;
-        $postFields = array('ID', 'title' => 'post_title', 'url' => 'guid', 'status' => 'post_status', 'type' => 'post_type');
-        $metaKeys = array('wpmap_visibilities', 'wpmap_latlng', 'wpmap_geocoded');
         $query = new WpMap_PostQuery($wpdb);
         return $query
             ->select($postFields)
@@ -37,7 +52,7 @@ class WpMap_AdminPage {
 
     private function getPostById($id)
     {
-        $posts = $this->getAllPosts(array('ID' => $id));
+        $posts = $this->queryPosts(null, null, array('ID' => $id));
         if (!count($posts) === 1) {
             trigger_error('@todo');
         }
@@ -47,7 +62,7 @@ class WpMap_AdminPage {
     private static function ajaxRoutes()
     {
         return array(
-            'getPostsConfig' => array('GET'),
+            'getPostsConfig' => array('GET', 'getAdminPosts'),
             'patchPost' => array('PATCH'),
         );
     }
@@ -70,6 +85,8 @@ class WpMap_AdminPage {
             wp_die('@todo err 404');
         }
         $route = $routes[$action];
+        $expectedRequestMethod = isset($route[0]) ? $route[0] : 'GET';
+        $controllerMethod = isset($route[1]) ? $route[1] : $action;
         // here, the action exists
         $requestMethod = strtoupper($_SERVER['REQUEST_METHOD']);
         if ($requestMethod === 'POST'
@@ -77,12 +94,12 @@ class WpMap_AdminPage {
         && in_array($_method = strtoupper($_POST['_method']), array('PUT', 'PATCH'))) {
             $requestMethod = $_method;
         }
-        if ($requestMethod !== $route[0]) {
+        if ($requestMethod !== $expectedRequestMethod) {
             wp_die("@todo err 40X bad method $requestMethod");
         }
         $instance = new WpMap_AdminPage();
         try {
-            $response = $instance->callAction($action, $requestMethod);
+            $response = $instance->callAction($controllerMethod, $requestMethod);
             if (is_string($response)) {
                 echo json_encode(array('data' => $response));
             } elseif (is_array($response) || is_object($response)) {
@@ -103,6 +120,9 @@ class WpMap_AdminPage {
 
     private function callAction($method, $httpVerb)
     {
+        if (!is_callable(array($this, $method))) {
+            trigger_error("@todo no method $method");
+        }
         switch ($httpVerb) {
             case 'GET':
                 return $this->$method(WpMap_Request::_GET());
@@ -115,9 +135,15 @@ class WpMap_AdminPage {
         }
     }
 
-    public function getPostsConfig()
+    public function getAdminPosts()
     {
-        return $this->getAllPosts();
+        return $this->queryPosts(null, null, array(
+            WpMap_PostQuery::POST_COLUMN_POST_STATUS => array(
+                WpMap_PostQuery::POST_STATUS_PUBLISHED,
+                WpMap_PostQuery::POST_STATUS_DRAFT,
+                WpMap_PostQuery::POST_STATUS_PRIVATE
+            )
+        ));
     }
 
     public function patchPost($payload)
@@ -125,7 +151,7 @@ class WpMap_AdminPage {
         if (!isset($payload['postID'])
          || !is_integer($payload['postID'])
          || ! get_post($payload['postID'])) {
-            die('@todo 404');
+            wp_die('@todo 404');
         }
         $postID = $payload['postID'];
         $changeset = $payload['changeset'];
@@ -144,6 +170,18 @@ class WpMap_AdminPage {
         foreach ($changesetMeta as $key => $value) {
             $serialized = WpMap_PostQuery::serializePostMeta($key, $value);
             update_post_meta($postID, $key, $serialized);
+                // For some meta keys we want to have additional behaviour
+            switch ($key) {
+                case 'wpmap_visibilities':
+                    // wpmap_on_map is a "bag" meta to query all posts for a map
+                    delete_post_meta($postID, 'wpmap_on_map');
+                    foreach ($value as $map => $isVisible) {
+                        if ($isVisible === WPMAP_VIS_ONMAP) {
+                            update_post_meta($postID, 'wpmap_on_map', $map);
+                        }
+                    }
+                    break;
+            }
         }
         return $this->getPostById($postID);
     }

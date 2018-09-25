@@ -13,7 +13,6 @@ const api = {
   	return axios.post(endpoint, asForm({
   		action,
   		_method: 'patch',
-  		lol: 'pat"ch',
   		payload: JSON.stringify(payload)
   	}))
   }
