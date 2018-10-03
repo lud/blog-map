@@ -1,34 +1,42 @@
-import axios from 'axios'
+import superagent from 'superagent'
+import superagentJsonapify from 'superagent-jsonapify'
+superagentJsonapify(superagent)
+console.log('superagentJsonapify', superagentJsonapify)
+
 const endpoint = window.ajaxurl
 
 const api = {
   get(action, params = {}) {
-    return axios.get(endpoint, {
-      params: Object.assign({}, params, {
+    return superagent
+      .get(endpoint)
+      .query(Object.assign({}, params, {
         action
-      })
-    })
+      }))
   },
   patch(action, payload) {
-  	return axios.post(endpoint, asForm({
-  		action,
-  		_method: 'patch',
-  		payload: JSON.stringify(payload)
-  	}))
+    return superagent
+      .post(endpoint)
+      .send(asForm({
+        action,
+        _method: 'patch',
+        payload: JSON.stringify(payload)
+      }))
   }
 }
 
 function asForm(data) {
-	const form = new FormData()
-	Object.entries(data).map(([k, v]) => form.set(k, v))
-	return form
+  const form = new FormData()
+  Object.entries(data).map(([k, v]) => form.set(k, v))
+  return form
 }
 
 export function getPostsConfig() {
   return api
     .get('getPostsConfig')
     .then(resp => {
-      const posts = resp.data.data
+      console.log('resp', resp)
+      const posts = resp.body.data
+      console.log('posts', posts)
       return posts
     })
 }
@@ -40,7 +48,7 @@ export function patchPost(postID, changeset) {
       changeset
     })
     .then(resp => {
-      const post = resp.data.data
+      const post = resp.body.data
       return post
     })
 

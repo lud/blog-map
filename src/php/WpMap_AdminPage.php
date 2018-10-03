@@ -2,6 +2,9 @@
 
 defined('ABSPATH') or exit();
 
+@todo ajouter un gestionnaire d'erreur après l'initialisation de worpress et
+balancer des erreurs HTTP au lieu d'avoir des fatal error avec status 200
+
 
 class WpMap_AdminPage {
 
@@ -99,6 +102,7 @@ class WpMap_AdminPage {
         }
         $instance = new WpMap_AdminPage();
         try {
+            header('Content-Type: application/vnd.api+json');
             $response = $instance->callAction($controllerMethod, $requestMethod);
             if (is_string($response)) {
                 echo json_encode(array('data' => $response));
@@ -163,7 +167,9 @@ class WpMap_AdminPage {
 
         // first loop to validate all
         foreach ($changesetMeta as $key => $value) {
-            self::ensureAthorizedMeta($key, $value);
+            if (!self::isAthorizedMeta($key, $value)) {
+                throw new HttpError(400);
+            }
         }
 
         // then save all
@@ -186,14 +192,14 @@ class WpMap_AdminPage {
         return $this->getPostById($postID);
     }
 
-    // private static function ensureAthorizedMeta($key, $value) {
+    // private static function isAthorizedMeta($key, $value) {
     //     if (!self::isAthorizedMeta($key, $value)) {
     //         $dump = var_export($value, 1);
     //         throw new Exception("Unauthorized meta change '$key' = $dump");
     //     }
     // }
 
-    private static function ensureAthorizedMeta($key, $value) {
+    private static function isAthorizedMeta($key, $value) {
         switch ($key) {
             case 'wpmap_visibilities':
                 if (!is_array($value)) {

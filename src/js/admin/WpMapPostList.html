@@ -7,6 +7,7 @@
         <th>Status</th>
         <th>Vis</th>
         <th>Visible</th>
+        <th>Country</th>
         <th>Location</th>
         <th>Coords</th>
     </tr>
@@ -26,6 +27,7 @@
                     off="{WPMAP_VIS_NOTONMAP}"
                     on:change="$actTogglePostVisibilities(post._id, event)"/>
             </td>
+            <td><CountryPicker on:change="$actSetPostCountryCode(post._id, event)"/></td>
             <td>{post.meta.wpmap_geocoded}</td>
             <td>{post.meta.wpmap_latlng}</td>
         </tr>
@@ -34,7 +36,9 @@
 </div>
 
 <script>
+
 import ToggleSwitch from './wp/ToggleSwitch.html'
+import CountryPicker from './wp/CountryPicker.html'
 
 const WPMAP_VIS_ONMAP = 1 // Show on map
 const WPMAP_VIS_NOTONMAP = 0 // Do not show on map
@@ -47,7 +51,7 @@ export default {
             WPMAP_VIS_NOTONMAP
         }
     },
-    components: { ToggleSwitch },
+    components: { ToggleSwitch, CountryPicker },
     helpers: {
         cls(header, x) {
             console.log(header, x)

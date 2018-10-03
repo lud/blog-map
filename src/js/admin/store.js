@@ -95,6 +95,23 @@ class Store extends BaseStore {
         err => this.setFetchedPost(post)
       )
   }
+
+  actSetPostCountryCode(postID, alpha2) {
+    console.log('actSetPostCountryCode postID', postID)
+    console.log('actSetPostCountryCode what', alpha2)
+
+    const post = this.getPost(postID)
+    patchPost(postID, {
+        meta: {
+            wpmap_country_alpha2: alpha2
+        }
+      })
+      .then(
+        data => this.setFetchedPost(data),
+        err => this.setFetchedPost(post)
+      )
+
+  }
 }
 
 const store = new Store()

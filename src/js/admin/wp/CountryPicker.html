@@ -1,0 +1,92 @@
+<div class="alpha2-status {statusClass}">
+  {#if editing}
+  	<span class="status-bg">{statusText}</span>
+	  <input ref:locationInput
+	  	on:blur="endEditMode(true)"
+      list="country-names-data"
+      name="countryAlpha2"
+      placeholder="{countryName}"
+      on:keyup="onNameInput(this.value)"
+      on:change="onNameInput(this.value, true)">
+  {:else}
+    <span on:click="startEditMode()" class="status-bg">{countryName} [{value || '?'}]</span>
+  {/if}
+</div>
+
+<script>
+
+// @todo while editing use a buffer value and do not change the base value. If
+// keypress [ESC], reset the value unchanged, do not fire an event.
+
+import { countries } from 'country-data'
+const countryNameToAlpha2 = {}
+countries.all.forEach(c => {
+  countryNameToAlpha2[c.name] = c.alpha2
+})
+
+export default {
+  data() {
+    return {
+      value: null,
+      editingValue: null,
+      editing: false
+    }
+  },
+  computed: {
+    liveValue: ({editing, editingValue, value}) => {
+    	return editing ? editingValue : value
+    },
+    status: ({liveValue}) => {
+      return !!countries[liveValue]
+    },
+    statusClass: ({status}) => {
+      return 'status-' + (status ? 'success' : 'error')
+    },
+    statusText: ({status, liveValue}) => {
+    	return status ? 'OK' : ' (Not found)'
+    },
+    countryName: ({liveValue}) => {
+    	return (countries[liveValue] || {name: ''}).name
+    }
+  },
+	onstate({ changed, current, previous }) {
+		if (changed.value) {
+    	this.fire('change', current.value)
+		}
+	},
+  methods: {
+    onNameInput(countryName, commitValue) {
+      const editingValue = countryNameToAlpha2[countryName] || null
+      this.set({ editingValue: editingValue })
+      if (commitValue) {
+				this.endEditMode(true)
+      }
+    },
+    startEditMode() {
+    	this.set({ editing: true })
+    	this.refs.locationInput.focus()
+    },
+    endEditMode(commitValue) {
+    	if (this.get().editing) {
+	    	this.set({ editing: false })
+	    	if (commitValue) {
+	    		const { editingValue } = this.get()
+	    		this.set({ value: editingValue })
+	    	}
+    	}
+    }
+  }
+}
+</script>
+
+<style>
+  .status-bg {
+    color: grey;
+  }
+  .alpha2-status.status-error .status-bg {
+    background-color: #fcc;
+  }
+  .alpha2-status.status-success .status-bg {
+    background-color: #cfc;
+  }
+</style>

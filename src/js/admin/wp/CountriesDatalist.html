@@ -1,0 +1,26 @@
+<div>Hello</div>
+<datalist id="country-names-data">
+    {#each countries as country}
+      <option>{country.name}</option>
+    {/each}
+</datalist>
+
+<script>
+
+import { countries } from 'country-data'
+console.log('countries', countries)
+const france = countries.all.find(c => c.name === 'France')
+console.log('france', france)
+// countries.all.forEach(c => console.log(c.name))
+
+export default {
+    data() {
+        return {
+          countries: countries.all
+        }
+    }
+}
+</script>
+
+<style>
+</style>
