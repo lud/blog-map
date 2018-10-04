@@ -115,6 +115,7 @@ function api_send_errors($statusCode, $errors)
         }
     }
     echo json_encode(array('errors' => $errors));
+    exit;
 }
 
 

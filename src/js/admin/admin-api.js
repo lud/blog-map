@@ -1,7 +1,13 @@
 import superagent from 'superagent'
 import superagentJsonapify from 'superagent-jsonapify'
 superagentJsonapify(superagent)
-console.log('superagentJsonapify', superagentJsonapify)
+
+function responseLogger(response) {
+  if (response.body) {
+    console.log('%s', JSON.stringify(response.body, 0, ' '))
+  }
+  return response
+}
 
 function errorLogger(httpError) {
   const { response } = httpError
@@ -31,7 +37,7 @@ const api = {
       .query(Object.assign({}, params, {
         action
       }))
-      .then(null, errorLogger)
+      .then(responseLogger, errorLogger)
   },
   patch(action, payload) {
     return superagent
@@ -42,7 +48,17 @@ const api = {
         _method: 'patch',
         payload: JSON.stringify(payload)
       }))
-      .then(null, errorLogger)
+      .then(responseLogger, errorLogger)
+  },
+  post(action, payload) {
+    return superagent
+      .post(endpoint)
+      .accept('application/json')
+      .send(asForm({
+        action,
+        payload: JSON.stringify(payload)
+      }))
+      .then(responseLogger, errorLogger)
   }
 }
 
@@ -56,9 +72,7 @@ export function getPostsConfig() {
   return api
     .get('getPostsConfig')
     .then(resp => {
-      console.log('resp', resp)
       const posts = resp.body.data
-      console.log('posts', posts)
       return posts
     })
 }
@@ -75,3 +89,10 @@ export function patchPost(postID, changeset) {
     })
 
 }
+
+// export function publishMap(mapID) {
+//   return api
+//     .post('publishMap', {
+//       mapID: mapID
+//     })
+// }

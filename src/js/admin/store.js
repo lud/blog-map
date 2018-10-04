@@ -3,7 +3,7 @@ import {
 } from 'svelte/store'
 import {
   getPostsConfig,
-  patchPost
+  patchPost,
 } from './admin-api'
 import * as list from '../helpers/list.js'
 
@@ -34,7 +34,7 @@ class Store extends BaseStore {
     // initial data
     this.set({
       initLoaded: false,
-      mapId: 'default-map',
+      mapID: 'default-map',
       sortProp: null
     })
 
@@ -70,11 +70,14 @@ class Store extends BaseStore {
     return list.keyFindOrFail(posts, PID, postID)
   }
 
-  setFetchedPost(post) {
+  setFetchedPost(post, opts = {}) {
     // console.log('setFetchedPost post', post)
-    let { rawPosts } = this.get()
+    let { rawPosts, mapID } = this.get()
     rawPosts = list.keyReplace(rawPosts, PID, post._id, post)
     this.set({ rawPosts })
+    if (opts.refresh) {
+      console.log('@todo refresh map')
+    }
   }
 
   actTogglePostVisibilities(postID, visibility) {
@@ -84,7 +87,7 @@ class Store extends BaseStore {
     // side state
     const post = this.getPost(postID)
     const newVisibilities = Object.assign({}, post.meta.wpmap_visibilities, {
-        [this.get().mapId]: visibility
+        [this.get().mapID]: visibility
     })
     patchPost(postID, {
         meta: {
@@ -92,7 +95,7 @@ class Store extends BaseStore {
         }
       })
       .then(
-        data => this.setFetchedPost(data),
+        data => this.setFetchedPost(data, {refresh: true}),
         err => this.setFetchedPost(post)
       )
   }
@@ -108,7 +111,7 @@ class Store extends BaseStore {
         }
       })
       .then(
-        data => this.setFetchedPost(data),
+        data => this.setFetchedPost(data, {refresh: true}),
         err => this.setFetchedPost(post)
       )
   }
@@ -124,7 +127,7 @@ class Store extends BaseStore {
         }
       })
       .then(
-        data => this.setFetchedPost(data),
+        data => this.setFetchedPost(data, {refresh: true}),
         err => this.setFetchedPost(post)
       )
   }

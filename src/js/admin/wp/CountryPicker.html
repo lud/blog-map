@@ -48,7 +48,6 @@ export default {
   },
 	onstate({ changed, current, previous }) {
 		if (changed.value) {
-      console.log('CountryPicker change', current.value)
     	this.fire('change', current.value)
 		}
 	},
@@ -65,11 +64,9 @@ export default {
     	this.refs.locationInput.focus()
     },
     endEditMode(commitValue) {
-      console.log('CountryPicker end edit mode, commit:%s', commitValue)
     	if (this.get().editing) {
 	    	this.set({ editing: false })
 	    	if (commitValue) {
-          console.log('commit')
 	    		const { editingValue } = this.get()
 	    		this.set({ value: editingValue })
 	    	}

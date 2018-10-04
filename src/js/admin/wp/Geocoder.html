@@ -6,16 +6,16 @@
       placeholder="{defaultDisplay}"
       on:input="handleInput(this.value)" />
     {#if resultsPanelVisible}
-    <div>
+    <div ref:overlay class="geocoder-overlay">
       {#await fetchPromise}
         <p>Loading...</p>
       {:then geolist}
         {#if geolist.debouncing}
         <p>Typing...</p>
         {:else}
-          <ul class="nominatim-results">
+          <ul class="geocoder-results">
           {#each geolist.items as geoitem}
-              <li class="nominatim-result" on:click="onSelectGeoitem(geoitem)">{geoitem.display_name}</li>
+              <li class="geocoder-result" on:click="onSelectGeoitem(geoitem)">{geoitem.display_name}</li>
           {:else}
             <li>No results for '{geolist.query}'.</li>
           {/each}
@@ -35,6 +35,7 @@
 import debounce from 'lodash/debounce'
 import { LocalStorageLens, MemoryStorage } from '../cache'
 import { NominatimJS } from 'nominatim-js'
+import Popper from 'popper.js'
 
 const NOMINATIM_DRIP_TIME = 3000
 let lastDrip = 0
@@ -96,6 +97,18 @@ export default {
         this.refs.geoinput.value = ''
       }
     }
+    if (changed.resultsPanelVisible) {
+      if (current.resultsPanelVisible) {
+        this.popper = new Popper(this.refs.geoinput, this.refs.overlay, {
+          placement: 'bottom',
+          flip: ['bottom', 'top']
+        })
+      } else {
+        if (this.popper) {
+          this.popper.destroy()
+        }
+      }
+    }
   },
 	oncreate() {
     this.debouncedFetchGeocode = debounce(this.fetchGeocode, 400)
@@ -131,18 +144,29 @@ export default {
     },
     onSelectGeoitem(geoitem) {
       this.fire('change', geoitem)
-      this.set({ resultsPanelVisible: false, fetchPromise: null })
+      this.set({
+        resultsPanelVisible: false,
+        fetchPromise: null,
+        defaultDisplay: geoitem.display_name
+      })
+      this.refs.geoinput.value = ''
     }
   }
 }
 </script>
 
 <style>
-  .nominatim-results li.nominatim-result {
+  .geocoder-results li.geocoder-result {
     font-weight: bold;
     cursor: pointer;
   }
-  .nominatim-results li.nominatim-result:hover {
-    background-color: #eee;
+  .geocoder-results li.geocoder-result:hover {
+    background-color: #eef;
+  }
+  .geocoder-overlay {
+    padding: 1em;
+    width: 80vw;
+    background: white;
+    z-index: 10000;
   }
 </style>

@@ -134,6 +134,7 @@ class WpMap_AdminPage {
                 return $this->$method(WpMap_Request::_GET());
             case 'PATCH':
             case 'PUT':
+            case 'POST':
                 $payload = json_decode(WpMap_Request::_POST('payload'), true);
                 return $this->$method($payload, $httpVerb);
             default:
@@ -172,11 +173,12 @@ class WpMap_AdminPage {
         return $this->queryPosts(null, null, array(
             WpMap_PostQuery::POST_COLUMN_POST_STATUS => array(
                 WpMap_PostQuery::POST_STATUS_PUBLISHED,
-                // WpMap_PostQuery::POST_STATUS_DRAFT,
-                // WpMap_PostQuery::POST_STATUS_PRIVATE
+                WpMap_PostQuery::POST_STATUS_DRAFT,
+                WpMap_PostQuery::POST_STATUS_PRIVATE
             ),
             WpMap_PostQuery::POST_COLUMN_POST_TYPE => array(
-                WpMap_PostQuery::POST_TYPE_PAGE
+                WpMap_PostQuery::POST_TYPE_PAGE,
+                WpMap_PostQuery::POST_TYPE_POST,
             )
         ));
     }
@@ -205,7 +207,7 @@ class WpMap_AdminPage {
         foreach ($changesetMeta as $key => $value) {
             $serialized = WpMap_PostQuery::serializePostMeta($key, $value);
             update_post_meta($postID, $key, $serialized);
-                // For some meta keys we want to have additional behaviour
+            // For some meta keys we want to have additional behaviour
             switch ($key) {
                 case 'wpmap_visibilities':
                     // wpmap_on_map is a "bag" meta to query all posts for a map
@@ -233,7 +235,7 @@ class WpMap_AdminPage {
                         $visibility = var_export($visibility, 1);
                         throw new \Exception("Bad visibility $visibility");
                     }
-                    if (preg_match('/[^a-zA-Z0-9_-]/', $map)) {
+                    if (! self::isValidMapKey($map)) {
                         $map = var_export($map, 1);
                         throw new \Exception("Bad map key $map");
                     }
@@ -251,4 +253,9 @@ class WpMap_AdminPage {
         throw new WpMap_ApiError(400, "Unauthorized meta key $key");
     }
 
+    public static function isValidMapKey($key)
+    {
+        $hasUnauthorizedChars = preg_match('/[^a-zA-Z0-9_-]/', $key);
+        return !$hasUnauthorizedChars;
+    }
 }

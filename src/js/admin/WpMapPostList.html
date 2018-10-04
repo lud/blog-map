@@ -9,12 +9,11 @@
         <th>Visible</th>
         <th>Country</th>
         <th>Location</th>
-        <th>Coords</th>
     </tr>
     {#each $posts as post}
-        <tr class="wpmap-admin-posts-list-item">
+        <tr class="wpmap-admin-posts-list-item map-status-{postMapStatus(post)}">
 
-            <td>{post._id}</td>
+            <td class="map-status-bg">{post._id}</td>
             <td>{post.props.title}</td>
             <td>{post.props.type}</td>
             <td>{post.props.status}</td>
@@ -22,7 +21,7 @@
             <!-- <pre>{JSON.stringify(post, 0, ' ')}</pre> -->
             <td>
                 <ToggleSwitch
-                    checked="{post.meta.wpmap_visibilities[$mapId] === WPMAP_VIS_ONMAP}"
+                    checked="{onCurrentMap(post)}"
                     on="{WPMAP_VIS_ONMAP}"
                     off="{WPMAP_VIS_NOTONMAP}"
                     on:change="$actTogglePostVisibilities(post._id, event)"/>
@@ -32,7 +31,7 @@
                     value="{post.meta.wpmap_country_alpha2}"
                     on:change="$actSetPostCountryCode(post._id, event)"/>
             </td>
-            <td>
+            <td style="position:relative">
                 <Geocoder
                     countryAlpha2={post.meta.wpmap_country_alpha2}
                     defaultDisplay={post.meta.wpmap_geocoded}
@@ -62,10 +61,19 @@ export default {
         }
     },
     components: { ToggleSwitch, CountryPicker, Geocoder },
-    helpers: {
-        cls(header, x) {
-            console.log(header, x)
-            return x
+    computed: {
+        onCurrentMap: ({ $mapID }) => post => {
+            return post.meta.wpmap_visibilities[$mapID] === WPMAP_VIS_ONMAP
+        },
+        postMapStatus: ({ onCurrentMap }) => post => {
+            // show if a post is ok to be on the map. If the post is set to
+            // be on the map, the only thing required is coordinates
+            // If not on the map, we return default status (with no style)
+            return  onCurrentMap(post)
+                ? Array.isArray(post.meta.wpmap_latlng)
+                    ? 'ok'
+                    : 'error'
+                : 'none'
         }
     }
 }
@@ -79,5 +87,11 @@ export default {
     th:first-child, td:first-child {
         text-align: right;
         font-family: monospace;
+    }
+    .map-status-error .map-status-bg {
+        background-color: #fcc;
+    }
+    .map-status-ok .map-status-bg {
+        background-color: #cfc;
     }
 </style>

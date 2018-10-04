@@ -13,13 +13,11 @@ class LocalStorageLens {
         this.lensKey = lensKey
         const current = localStorage.getItem(lensKey)
         if (null === current) {
-            console.log('initialize lens %s', lensKey)
             this.memory = {}
             localStorage.setItem(lensKey, j(this.memory))
         } else {
             this.memory = p(current) || {}
         }
-        console.log('%s : %s', lensKey, jp(this.memory))
     }
 
     // return value as a promise
