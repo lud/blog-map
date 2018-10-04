@@ -1,0 +1,148 @@
+<div>
+  {#if countryAlpha2}
+    <input ref:geoinput
+      type="text"
+      name="wpmap-geocoder"
+      placeholder="{defaultDisplay}"
+      on:input="handleInput(this.value)" />
+    {#if resultsPanelVisible}
+    <div>
+      {#await fetchPromise}
+        <p>Loading...</p>
+      {:then geolist}
+        {#if geolist.debouncing}
+        <p>Typing...</p>
+        {:else}
+          <ul class="nominatim-results">
+          {#each geolist.items as geoitem}
+              <li class="nominatim-result" on:click="onSelectGeoitem(geoitem)">{geoitem.display_name}</li>
+          {:else}
+            <li>No results for '{geolist.query}'.</li>
+          {/each}
+          </ul>
+        {/if}
+      {:catch error}
+        <p>Error : {error}</p>
+      {/await}
+    </div>
+    {/if}
+  {:else}
+    <abbr title="A country code is required">?</abbr>
+  {/if}
+</div>
+
+<script>
+import debounce from 'lodash/debounce'
+import { LocalStorageLens, MemoryStorage } from '../cache'
+import { NominatimJS } from 'nominatim-js'
+
+const NOMINATIM_DRIP_TIME = 3000
+let lastDrip = 0
+
+function drip(arg) {
+  return new Promise(function(resolve) {
+    const now = Date.now()
+    const diff = now - lastDrip
+    const wait = Math.max(1, NOMINATIM_DRIP_TIME - diff)
+    setTimeout(() => resolve(arg), wait)
+    lastDrip = now
+  })
+}
+
+function logNominatimErrorAndThrow(err) {
+  // @todo display error details (or show them in the component?)
+  console.error(err)
+  throw err
+}
+
+function nominatimQuery(query, countryAlpha2) {
+  console.debug('nominatimQuery [%s] %s', countryAlpha2, query)
+  return NominatimJS.search({
+    q: query,
+    countryCodesArray: [countryAlpha2]
+  })
+}
+
+function stripResults(results) {
+  return results.map(stripResult)
+}
+
+function stripResult({ display_name, lat, lon}) {
+  return { display_name, lat, lon}
+}
+
+// reset the cache every month
+const epochMonths = Math.round(Date.now() / 1000 / 2629743)
+
+const geocoderCache = 'localStorage' in window
+  ? new LocalStorageLens('geocoderCache-' + epochMonths)
+  : new MemoryStorage()
+
+// A countryAlpha2 is required in order to be kind with Nominatim
+export default {
+  data() {
+    return {
+      countryAlpha2: null,
+      fetchPromise: null,
+      resultsPanelVisible: false,
+      defaultDisplay: null,
+    }
+  },
+  computed: {},
+  onupdate({ changed, current, previous }) {
+    if (changed.countryAlpha2) {
+      this.set({ resultsPanelVisible: false })
+      if (this.refs.geoinput) {
+        this.refs.geoinput.value = ''
+      }
+    }
+  },
+	oncreate() {
+    this.debouncedFetchGeocode = debounce(this.fetchGeocode, 400)
+  },
+  methods: {
+    handleInput(value) {
+      if (!value || value === '') {
+        this.set({ resultsPanelVisible: false })
+      } else {
+        this.set({ resultsPanelVisible: true, fetchPromise: Promise.resolve({debouncing: true}) })
+        this.debouncedFetchGeocode(value)
+      }
+    },
+    fetchGeocode(value) {
+      const { countryAlpha2 } = this.get()
+      const cacheKey = countryAlpha2 + '_v_' + value
+      const fetchPromise = geocoderCache.has(cacheKey)
+        ? Promise.resolve({
+          query: value,
+          items: geocoderCache.get(cacheKey)
+        })
+        : drip()
+            .then(() => nominatimQuery(value, countryAlpha2))
+            .then(
+              // geocoderCache.set returns the value for the next .then()
+              results => geocoderCache.set(cacheKey, stripResults(results)),
+              error => logNominatimErrorAndThrow(error)
+            ).then(results => ({
+              query: value,
+              items: results
+            }))
+      this.set({ fetchPromise })
+    },
+    onSelectGeoitem(geoitem) {
+      this.fire('change', geoitem)
+      this.set({ resultsPanelVisible: false, fetchPromise: null })
+    }
+  }
+}
+</script>
+
+<style>
+  .nominatim-results li.nominatim-result {
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .nominatim-results li.nominatim-result:hover {
+    background-color: #eee;
+  }
+</style>

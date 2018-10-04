@@ -98,10 +98,10 @@ class Store extends BaseStore {
   }
 
   actSetPostCountryCode(postID, alpha2) {
-    console.log('actSetPostCountryCode postID', postID)
-    console.log('actSetPostCountryCode what', alpha2)
-
     const post = this.getPost(postID)
+    const clone = JSON.parse(JSON.stringify(post))
+    clone.meta.wpmap_country_alpha2 = alpha2
+    this.setFetchedPost(clone)
     patchPost(postID, {
         meta: {
             wpmap_country_alpha2: alpha2
@@ -111,8 +111,24 @@ class Store extends BaseStore {
         data => this.setFetchedPost(data),
         err => this.setFetchedPost(post)
       )
-
   }
+
+  actSetPostGeocoding(postID, { display_name: geocoded, lat, lon }) {
+    const latlng = [lat, lon]
+    const post = this.getPost(postID)
+
+    patchPost(postID, {
+        meta: {
+          wpmap_geocoded: geocoded,
+          wpmap_latlng: latlng,
+        }
+      })
+      .then(
+        data => this.setFetchedPost(data),
+        err => this.setFetchedPost(post)
+      )
+  }
+
 }
 
 const store = new Store()

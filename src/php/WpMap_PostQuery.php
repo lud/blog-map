@@ -341,6 +341,10 @@ class WpMap_PostQuery {
                     $value = array();
                 }
                 $value = json_encode($value);
+                break;
+            case 'wpmap_latlng':
+                $value = json_encode($value);
+                break;
         }
         return $value;
     }
@@ -351,6 +355,10 @@ class WpMap_PostQuery {
             case 'wpmap_visibilities':
                 $value = json_decode($value);
                 if (null === $value) return array();
+                break;
+            case 'wpmap_latlng':
+                $value = json_decode($value);
+                break;
         }
         return $value;
     }

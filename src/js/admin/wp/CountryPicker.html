@@ -1,23 +1,19 @@
 <div class="alpha2-status {statusClass}">
   {#if editing}
-  	<span class="status-bg">{statusText}</span>
-	  <input ref:locationInput
-	  	on:blur="endEditMode(false)"
+    <input ref:locationInput
+      on:blur="endEditMode(false)"
       list="country-names-data"
       name="countryAlpha2"
       placeholder="{countryName}"
       on:keyup="onNameInput(this.value)"
       on:change="onNameInput(this.value, true)">
+  	<span class="status-bg">{statusText}</span>
   {:else}
     <span on:click="startEditMode()" class="status-bg">{countryName} [{value || '?'}]</span>
   {/if}
 </div>
 
 <script>
-
-// @todo while editing use a buffer value and do not change the base value. If
-// keypress [ESC], reset the value unchanged, do not fire an event.
-
 import { countries } from 'country-data'
 const countryNameToAlpha2 = {}
 countries.all.forEach(c => {
@@ -29,7 +25,8 @@ export default {
     return {
       value: null,
       editingValue: null,
-      editing: false
+      editing: false,
+      lastInput: ''
     }
   },
   computed: {
@@ -42,34 +39,37 @@ export default {
     statusClass: ({status}) => {
       return 'status-' + (status ? 'success' : 'error')
     },
-    statusText: ({status, liveValue}) => {
-    	return status ? 'OK' : ' (Not found)'
+    statusText: ({status, liveValue, lastInput}) => {
+    	return status ? 'OK' : lastInput !== '' ? ' (Not found)' : ''
     },
-    countryName: ({liveValue}) => {
-    	return (countries[liveValue] || {name: ''}).name
+    countryName: ({liveValue, lastInput}) => {
+    	return (countries[liveValue] || {name: lastInput}).name
     }
   },
 	onstate({ changed, current, previous }) {
 		if (changed.value) {
+      console.log('CountryPicker change', current.value)
     	this.fire('change', current.value)
 		}
 	},
   methods: {
     onNameInput(countryName, commitValue) {
       const editingValue = countryNameToAlpha2[countryName] || null
-      this.set({ editingValue: editingValue })
+      this.set({ editingValue: editingValue, lastInput: countryName })
       if (commitValue) {
 				this.endEditMode(true)
       }
     },
     startEditMode() {
-    	this.set({ editing: true })
+    	this.set({ editing: true, editingValue: null, lastInput: '' })
     	this.refs.locationInput.focus()
     },
     endEditMode(commitValue) {
+      console.log('CountryPicker end edit mode, commit:%s', commitValue)
     	if (this.get().editing) {
 	    	this.set({ editing: false })
 	    	if (commitValue) {
+          console.log('commit')
 	    		const { editingValue } = this.get()
 	    		this.set({ value: editingValue })
 	    	}
@@ -88,5 +88,11 @@ export default {
   }
   .alpha2-status.status-success .status-bg {
     background-color: #cfc;
+  }
+  .alpha2-status.status-error input {
+    box-shadow:inset 0 0 5px 5px #fcc;
+  }
+  .alpha2-status.status-success input {
+    box-shadow:inset 0 0 5px 5px #cfc;
   }
 </style>

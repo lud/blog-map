@@ -27,8 +27,17 @@
                     off="{WPMAP_VIS_NOTONMAP}"
                     on:change="$actTogglePostVisibilities(post._id, event)"/>
             </td>
-            <td><CountryPicker value="{post.meta.wpmap_country_alpha2}" on:change="$actSetPostCountryCode(post._id, event)"/></td>
-            <td>{post.meta.wpmap_geocoded}</td>
+            <td>
+                <CountryPicker
+                    value="{post.meta.wpmap_country_alpha2}"
+                    on:change="$actSetPostCountryCode(post._id, event)"/>
+            </td>
+            <td>
+                <Geocoder
+                    countryAlpha2={post.meta.wpmap_country_alpha2}
+                    defaultDisplay={post.meta.wpmap_geocoded}
+                    on:change="$actSetPostGeocoding(post._id, event)"/>
+            </td>
             <td>{post.meta.wpmap_latlng}</td>
         </tr>
     {/each}
@@ -39,6 +48,7 @@
 
 import ToggleSwitch from './wp/ToggleSwitch.html'
 import CountryPicker from './wp/CountryPicker.html'
+import Geocoder from './wp/Geocoder.html'
 
 const WPMAP_VIS_ONMAP = 1 // Show on map
 const WPMAP_VIS_NOTONMAP = 0 // Do not show on map
@@ -51,7 +61,7 @@ export default {
             WPMAP_VIS_NOTONMAP
         }
     },
-    components: { ToggleSwitch, CountryPicker },
+    components: { ToggleSwitch, CountryPicker, Geocoder },
     helpers: {
         cls(header, x) {
             console.log(header, x)

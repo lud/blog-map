@@ -6,7 +6,6 @@ class WpMap_AdminPage {
 
     private $defaultQueryPostFields;
     private $defaultQueryMetaKeys;
-    private $defaultQueryConditions;
 
     private function __construct()
     {
@@ -20,7 +19,12 @@ class WpMap_AdminPage {
             'status' => 'post_status',
             'type'   => 'post_type'
         );
-        $this->defaultQueryMetaKeys = array('wpmap_visibilities', 'wpmap_latlng', 'wpmap_geocoded', 'wpmap_country_alpha2');
+        $this->defaultQueryMetaKeys = array(
+            'wpmap_visibilities',
+            'wpmap_latlng',
+            'wpmap_geocoded',
+            'wpmap_country_alpha2'
+        );
     }
 
     public static function render()
@@ -168,8 +172,11 @@ class WpMap_AdminPage {
         return $this->queryPosts(null, null, array(
             WpMap_PostQuery::POST_COLUMN_POST_STATUS => array(
                 WpMap_PostQuery::POST_STATUS_PUBLISHED,
-                WpMap_PostQuery::POST_STATUS_DRAFT,
-                WpMap_PostQuery::POST_STATUS_PRIVATE
+                // WpMap_PostQuery::POST_STATUS_DRAFT,
+                // WpMap_PostQuery::POST_STATUS_PRIVATE
+            ),
+            WpMap_PostQuery::POST_COLUMN_POST_TYPE => array(
+                WpMap_PostQuery::POST_TYPE_PAGE
             )
         ));
     }
@@ -233,10 +240,15 @@ class WpMap_AdminPage {
                 }
                 return true;
             case 'wpmap_country_alpha2':
+            case 'wpmap_geocoded':
                 return true;
-            default:
-                throw new WpMap_ApiError(400, "Unauthorized meta key $key");
+            case 'wpmap_latlng':
+                if (!is_array($value) || count($value) !== 2) {
+                    throw new \Exception("latlng must be an array");
+                }
+                return true;
         }
+        throw new WpMap_ApiError(400, "Unauthorized meta key $key");
     }
 
 }

@@ -64,16 +64,6 @@ function createConfig(config) {
 
 export default [
   createConfig({
-    input: 'src/js/client/app.js',
-    output: {
-      sourcemap: true,
-      format: 'iife',
-      name: 'wpmap', // export in global namespace
-      file: production ?
-        'public/widget/bundle.min.js' : 'public/widget/bundle.js'
-    }
-  }),
-  createConfig({
     input: 'src/js/admin/app.js',
     output: {
       sourcemap: true,
@@ -81,6 +71,16 @@ export default [
       name: 'wpmapAdmin', // export in global namespace
       file: production ?
         'public/admin/bundle-adm.min.js' : 'public/admin/bundle-adm.js'
+    }
+  }),
+  createConfig({
+    input: 'src/js/client/app.js',
+    output: {
+      sourcemap: true,
+      format: 'iife',
+      name: 'wpmap', // export in global namespace
+      file: production ?
+        'public/widget/bundle.min.js' : 'public/widget/bundle.js'
     }
   }),
 ]
