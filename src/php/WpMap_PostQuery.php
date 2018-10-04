@@ -42,8 +42,8 @@ class WpMap_PostQuery {
 
     public function withMeta(array $keys)
     {
-        foreach ($keys as $k) {
-            self::safeSqlField($k);
+        foreach ($keys as $k => $v) {
+            self::safeSqlField(is_integer($k) ? $v : $k);
         }
         $this->_metaFieldsCache = null; // clear cache
         $this->metaKeys = array_merge($this->metaKeys, $keys);
@@ -88,11 +88,21 @@ class WpMap_PostQuery {
     {
         if ($this->_metaFieldsCache === null) {
             $this->_metaFieldsCache = array();
-            foreach ($this->metaKeys as $iMeta => $metaKey) {
-                $tableAlias = "pm$iMeta";
+            $index = 0;
+            foreach ($this->metaKeys as $key => $value) {
+                $index++;
+                if (is_integer($key)) {
+                    $metaKey = $value;
+                    $unsafeMatch = null;
+                } else {
+                    $metaKey = $key;
+                    $unsafeMatch = $value;
+                }
+                $tableAlias = "pm$index";
                 $this->_metaFieldsCache[] = array(
                     'metaKey' => $metaKey,
                     'alias' => $metaKey,
+                    'unsafeMatch' => $unsafeMatch,
                     'table' => $this->wpdb->postmeta,
                     'field' => self::META_COLUMN_VALUE,
                     'tableAlias' => $tableAlias
@@ -166,16 +176,24 @@ class WpMap_PostQuery {
         foreach ($this->buildMetaFields() as $mf) {
             $metaTable = $mf['table'];
             $metaTableAlias = $mf['tableAlias'];
+            $unsafeMatch = $mf['unsafeMatch'];
             $tpForeign = self::setTablePrefix(self::POST_FOREIGN_KEY, $metaTableAlias);
             $tpMetaKeyField = self::setTablePrefix(self::META_COLUMN_KEY, $metaTableAlias);
+            $joinType = (null !== $unsafeMatch) ? 'INNER' : 'LEFT';
 
-            $sqlFROM .= "\nLEFT JOIN\n  $metaTable $metaTableAlias"
+            $sqlFROM .= "\n$joinType JOIN\n  $metaTable $metaTableAlias"
                         . "\n     ON $tpPostsPrimary = $tpForeign"
                         . "\n    AND $tpMetaKeyField = %s"
                         ;
+            $statementParamsRef[] = $mf['metaKey'];
+
+            if (null !== $unsafeMatch) {
+                $tpMetaValueField = self::setTablePrefix(self::META_COLUMN_VALUE, $metaTableAlias);
+                $sqlFROM .= "\n    AND $tpMetaValueField = %s";
+                $statementParamsRef[] = $unsafeMatch;
+            }
             // As we added a '%s' for the meta key, we must register the value
             // in the statement params
-            $statementParamsRef[] = $mf['metaKey'];
         }
 
         return $sqlFROM;
@@ -314,7 +332,10 @@ class WpMap_PostQuery {
             $props->$alias = $this->unserializePostColumn($column, $record->$alias);
         }
         $meta = new stdClass;;
-        foreach ($this->metaKeys as $key) {
+        foreach ($this->metaKeys as $index => $key) {
+            if (!is_integer($index)) {
+                $key = $index;
+            }
             $meta->$key = $this->unserializePostMeta($key, $record->$key);
         }
         return (object) array(

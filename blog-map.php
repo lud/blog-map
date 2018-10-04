@@ -9,7 +9,8 @@ Author URI: http://mrtotallyawesome.com
 License: MIT
 */
 defined('ABSPATH') or exit();
-
+ini_set('display_errors', 'on');
+error_reporting(E_ALL);
 define('WPMAP_VERSION', WP_DEBUG ? time() : '0.0.1');
 
 // Visibility constants
@@ -18,6 +19,7 @@ define('WPMAP_VIS_NOTONMAP', 0); // Do not show on map
 
 require_once dirname(__FILE__) . '/src/php/helpers.php';
 require_once dirname(__FILE__) . '/src/php/WpMap_AdminPage.php';
+require_once dirname(__FILE__) . '/src/php/WpMap_AjaxController.php';
 require_once dirname(__FILE__) . '/src/php/WpMap_Widget.php';
 require_once dirname(__FILE__) . '/src/php/WpMap_PostQuery.php';
 require_once dirname(__FILE__) . '/src/php/WpMap_Request.php';
@@ -90,4 +92,6 @@ add_action('wp_enqueue_scripts', 'wpmap_register_front_assets');
 add_action('admin_enqueue_scripts', 'wpmap_register_admin_assets');
 add_action('admin_menu', 'wpmap_configure_admin_menu');
 add_action('plugins_loaded', array('WpMap_Request', 'load'));
-WpMap_AdminPage::registerAjaxController();
+$ajaxController = new WpMap_AjaxController();
+$ajaxController->registerRoutes('WpMap_AdminPage');
+$ajaxController->registerRoutes('WpMap_Widget', true);
