@@ -2,10 +2,6 @@
 
 defined('ABSPATH') or exit();
 
-@todo ajouter un gestionnaire d'erreur après l'initialisation de worpress et
-balancer des erreurs HTTP au lieu d'avoir des fatal error avec status 200
-
-
 class WpMap_AdminPage {
 
     private $defaultQueryPostFields;
@@ -24,7 +20,7 @@ class WpMap_AdminPage {
             'status' => 'post_status',
             'type'   => 'post_type'
         );
-        $this->defaultQueryMetaKeys = array('wpmap_visibilities', 'wpmap_latlng', 'wpmap_geocoded');
+        $this->defaultQueryMetaKeys = array('wpmap_visibilities', 'wpmap_latlng', 'wpmap_geocoded', 'wpmap_country_alpha2');
     }
 
     public static function render()
@@ -80,6 +76,8 @@ class WpMap_AdminPage {
 
     public static function ajaxController($a = null, $b = null, $c = null, $d = null)
     {
+        set_error_handler(array('WpMap_AdminPage', 'handleAjaxError'));
+        set_exception_handler(array('WpMap_AdminPage', 'handleAjaxException'));
         $action = $_REQUEST['action'];
         $routes = self::ajaxRoutes();
         if (!isset($routes[$action])) {
@@ -139,6 +137,32 @@ class WpMap_AdminPage {
         }
     }
 
+    public static function handleAjaxException($e)
+    {
+        if ($e instanceof WpMap_ApiError) {
+            api_send_errors($e->statusCode(), $e);
+        } else {
+            api_send_errors(500, '(unhandled) ' . $e->getMessage());
+        }
+        return true;
+    }
+
+    public static function handleAjaxError($errno, $errstr, $errfile, $errline)
+    {
+        $jsonApiError = array(
+            'title' => $errstr,
+            'meta' => array(
+                'errno' => $errno
+            )
+        );
+        if (WP_DEBUG) {
+            $jsonApiError['meta']['file'] = $errfile;
+            $jsonApiError['meta']['line'] = $errline;
+        }
+        api_send_errors(500, $jsonApiError);
+        return true;
+    }
+
     public function getAdminPosts()
     {
         return $this->queryPosts(null, null, array(
@@ -167,9 +191,7 @@ class WpMap_AdminPage {
 
         // first loop to validate all
         foreach ($changesetMeta as $key => $value) {
-            if (!self::isAthorizedMeta($key, $value)) {
-                throw new HttpError(400);
-            }
+            self::validateInputMeta($key, $value);
         }
 
         // then save all
@@ -192,14 +214,7 @@ class WpMap_AdminPage {
         return $this->getPostById($postID);
     }
 
-    // private static function isAthorizedMeta($key, $value) {
-    //     if (!self::isAthorizedMeta($key, $value)) {
-    //         $dump = var_export($value, 1);
-    //         throw new Exception("Unauthorized meta change '$key' = $dump");
-    //     }
-    // }
-
-    private static function isAthorizedMeta($key, $value) {
+    private static function validateInputMeta($key, $value) {
         switch ($key) {
             case 'wpmap_visibilities':
                 if (!is_array($value)) {
@@ -217,8 +232,10 @@ class WpMap_AdminPage {
                     }
                 }
                 return true;
+            case 'wpmap_country_alpha2':
+                return true;
             default:
-                throw new \Exception("Unauthorized meta key $key");
+                throw new WpMap_ApiError(400, "Unauthorized meta key $key");
         }
     }
 

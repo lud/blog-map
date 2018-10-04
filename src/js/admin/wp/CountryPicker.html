@@ -2,7 +2,7 @@
   {#if editing}
   	<span class="status-bg">{statusText}</span>
 	  <input ref:locationInput
-	  	on:blur="endEditMode(true)"
+	  	on:blur="endEditMode(false)"
       list="country-names-data"
       name="countryAlpha2"
       placeholder="{countryName}"

@@ -71,6 +71,7 @@ class Store extends BaseStore {
   }
 
   setFetchedPost(post) {
+    // console.log('setFetchedPost post', post)
     let { rawPosts } = this.get()
     rawPosts = list.keyReplace(rawPosts, PID, post._id, post)
     this.set({ rawPosts })

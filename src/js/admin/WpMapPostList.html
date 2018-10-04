@@ -27,7 +27,7 @@
                     off="{WPMAP_VIS_NOTONMAP}"
                     on:change="$actTogglePostVisibilities(post._id, event)"/>
             </td>
-            <td><CountryPicker on:change="$actSetPostCountryCode(post._id, event)"/></td>
+            <td><CountryPicker value="{post.meta.wpmap_country_alpha2}" on:change="$actSetPostCountryCode(post._id, event)"/></td>
             <td>{post.meta.wpmap_geocoded}</td>
             <td>{post.meta.wpmap_latlng}</td>
         </tr>
