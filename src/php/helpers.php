@@ -80,4 +80,7 @@ function api_send_errors($statusCode, $errors)
     exit;
 }
 
-
+function latlngToLonlat($latlng) {
+    list($lat, $lon) = $latlng;
+    return array($lon, $lat);
+}

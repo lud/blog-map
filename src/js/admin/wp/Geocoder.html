@@ -17,7 +17,7 @@
           {#each geolist.items as geoitem}
               <li class="geocoder-result" on:click="onSelectGeoitem(geoitem)">{geoitem.display_name}</li>
           {:else}
-            <li>No results for '{geolist.query}'.</li>
+            <li on:click="clearPanel()">No results for '{geolist.query}'.</li>
           {/each}
           </ul>
         {/if}
@@ -150,6 +150,12 @@ export default {
         defaultDisplay: geoitem.display_name
       })
       this.refs.geoinput.value = ''
+    },
+    clearPanel() {
+      this.set({
+        resultsPanelVisible: false,
+        fetchPromise: null,
+      })
     }
   }
 }

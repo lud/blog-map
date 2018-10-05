@@ -129,11 +129,16 @@
           //     group: 'debug undef'
           //   })
           // }, 1)
-
-        map.fitBounds(groupLayer.getBounds(), {
-          padding: [50, 50],
-          animate: false
-        })
+        if (collection.features.length > 1) {
+          map.fitBounds(groupLayer.getBounds(), {
+            padding: [50, 50],
+            animate: false
+          })
+        } else {
+          // geojson is lonlat, but leaflet is latlng
+          const [lng, lat] = collection.features[0].geometry.coordinates
+          map.setView([lat, lng], 10)
+        }
         map.addLayer(groupLayer)
         groupLayer.bringToFront()
       },
