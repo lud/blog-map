@@ -1,4 +1,4 @@
-<div ref:leaflet id={mapid} class="wpmap-map">
+<div ref:leaflet id="wpmap-map-{mapID}" class="wpmap-map">
   <slot>Hello !</slot>
 </div>
 
@@ -72,18 +72,18 @@
       console.log('oncreate background', background)
       console.log('oncreate collection', collection)
       this.set({ map })
-      if (background) setMapBackground(map, background)
-      if (collection) this.setupFeaturesLayer()
       this.applyActiveArea(activeArea)
     },
-    onstate({ changed, current, previous }) {
+    onupdate({ changed, current, previous }) {
       // most code here must act on the map, but onstate() is fired once before
       // oncreate(), and the map is created on oncreate(). So we test for the
       // presence of the map in the state before acting on it
-      if (current.map && changed.background) {
+      if (current.map && changed.background && current.background) {
         setMapBackground(current.map, current.background)
       }
-      if (current.map && changed.collection) {
+      if (current.map && changed.collection && current.collection) {
+        console.log('current.collection is cool : ', current.collection)
+        console.log('so we call setupFeaturesLayer()')
         this.setupFeaturesLayer()
       }
       if (current.map && changed.activeArea) {
@@ -95,6 +95,7 @@
         let DEBUG_FAKE_CLICK_LAYER
         const self = this
         const { map, collection, featureStyle } = self.get()
+        console.log('setupFeaturesLayer collection', collection)
         const groupLayer = L.geoJson(collection, {
             pointToLayer: function(feat, latlng) {
               const layer = L.circleMarker(latlng)

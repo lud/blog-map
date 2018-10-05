@@ -9,6 +9,7 @@ class WpMap_AjaxController {
     public function registerRoutes($routes, $public = false)
     {
         if (is_string($routes)) {
+            // $routes is a class
             $routes = call_user_func(array($routes, 'ajaxRoutes'));
         }
         // if an action is public, we still have to register a wp_ajax (on top

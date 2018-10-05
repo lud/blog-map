@@ -26,6 +26,11 @@ class WpMap_Widget extends WP_Widget {
         wp_enqueue_style('wpmap_widget_bundle_css');
         wp_enqueue_script('wpmap_widget_bundle_js');
 
+        // Define a global value to pass the ajax controller URL
+        wp_localize_script( 'wpmap_widget_bundle_js', '_wpmap_loc', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+        ));
+
         $randomWidgetId = uniqid('wpmap-');
         $widgetTitle = 'Blog Map';
 
@@ -38,7 +43,8 @@ class WpMap_Widget extends WP_Widget {
         <script type="text/javascript">
             ;(function(config){
                 config.maps.push({
-                    el: document.getElementById('<?php echo $randomWidgetId; ?>')
+                    el: document.getElementById('<?php echo $randomWidgetId; ?>'),
+                    mapID: 'default-map'
                 })
             }(this._wpmap = this._wpmap || {maps: []}))
         </script>
@@ -84,6 +90,43 @@ class WpMap_Widget extends WP_Widget {
         );
         global $wpdb;
         $query = new WpMap_PostQuery($wpdb);
+        $json = <<<'JSON'
+
+{
+  "type": "FeatureCollection",
+  "features": [{
+    "type": "Feature",
+    "geometry": {
+      "coordinates": [
+        13.438596,
+        52.519854
+      ],
+      "type": "Point"
+    },
+    "properties": {
+      "country": "Germany",
+      "title": "Mon voyage à Berlin",
+      "url": "/test-fetch-description"
+    }
+  }, {
+    "geometry": {
+      "coordinates": [2.3514992, 48.8566101],
+      "type": "Point"
+    },
+    "type": "Feature",
+    "properties": {
+      "country": "France",
+      "title": "Un week end à paris c'était super !",
+      "url": "/test-fetch-description",
+      "state": "Ile-de-France"
+    }
+  }]
+}
+
+
+JSON;
+    return json_decode($json);
+
         return $query
             ->select($postFields)
             ->withMeta($metaKeys)

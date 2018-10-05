@@ -1,14 +1,9 @@
-import axios from 'axios'
-import FAKE_DATA from './fake-data'
+import wpajax from '../helpers/wp-ajax.js'
 
-export function fetchPosts(url) {
-  return Promise.resolve(FAKE_DATA)
-    // return axios.get(url)
+export function fetchPosts(mapID) {
+    return wpajax.get('getMapData', { mapID })
 }
 
 export function getPageMetaDescription(url) {
-    return axios.get(url)
-        .then(function(response) {
-            return response.data && response.data.description || ''
-        })
+    return wpajax.get(url)
 }
