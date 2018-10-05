@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') or exit();
+
 class WpMap_Request {
     static private $single;
 

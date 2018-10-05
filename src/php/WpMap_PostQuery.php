@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') or exit();
+
 class WpMap_PostQuery {
 
     const META_COLUMN_KEY = 'meta_key';
