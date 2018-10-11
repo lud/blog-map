@@ -10,7 +10,9 @@
 
 <script>
   import 'leaflet/dist/leaflet.css'
+  import 'leaflet-vector-icon/dist/leaflet-vector-icon.css'
   import L from 'leaflet'
+  import VectorIcon from 'leaflet-vector-icon'
   import 'leaflet-providers'
   import 'leaflet-active-area'
   import FeatureStyle from './feature-style'
@@ -53,6 +55,34 @@
     return prefix + baseStyle
   }
 
+  // Generate map pins :
+// medium.com/welldone-software/map-pins-using-svg-path-9fdfebb74501
+// The pin is defined by 4 points :
+//  - A is the tip of the pin
+//  - C is the center of the circle (top part of the pin)
+//  - B (left) and D (right) are the two points where the circle
+//    connects with the straight lines going to A
+// The shape is A --> B ~~> D --> A
+//   where --> is a straight line
+//     and ~~> a circle arc revolving around C
+// dX is the horizontal delta between A and D (and negative for B)
+// dY is the vertical delta between A and B && A and D (negative for
+//   both as SVG Y is growing downwards)
+function pinPath(radius, height) {
+    if (height <= radius * 2) {
+      height = radius * 2 + 1
+    }
+    const alpha = Math.acos(radius / (height - radius))
+    const deltaX = radius * Math.sin(alpha)
+    const deltaY = height * (height - radius * 2) / (height - radius)
+    const Ax = 0, Ay = 0, Bx = -deltaX, By = -deltaY, Dx = deltaX, Dy = -deltaY
+    console.log('radius: %s, height: %s, alpha: %s, deltaX: %s, deltaY: %s', radius, height, alpha, deltaX, deltaY)
+    return `M ${Ax},${Ay}
+            L ${Bx},${By}
+            A ${radius} ${radius} 1 1 1 ${Dx},${Dy}
+            L ${Ax},${Ay} z`
+}
+
   // -------------------------------------------------------------------------
   // Component start
   // -------------------------------------------------------------------------
@@ -92,13 +122,30 @@
     },
     methods: {
       setupFeaturesLayer() {
+        const CONF_PIN_RADIUS = 22
+        const CONF_PIN_HEIGHT = 50
+        const iconSize = [CONF_PIN_RADIUS * 2, CONF_PIN_HEIGHT]
+        const iconAnchor = [CONF_PIN_RADIUS, CONF_PIN_HEIGHT]
+        const mapPin = pinPath(CONF_PIN_RADIUS, CONF_PIN_HEIGHT)
+        // viewbox is x y w h, not x1 y1 x2 y2
+        const viewBox = `${-CONF_PIN_RADIUS} ${-CONF_PIN_HEIGHT} ${CONF_PIN_RADIUS * 2} ${CONF_PIN_HEIGHT}`
         let DEBUG_FAKE_CLICK_LAYER
         const self = this
         const { map, collection, featureStyle } = self.get()
         console.log('setupFeaturesLayer collection', collection)
         const groupLayer = L.geoJson(collection, {
             pointToLayer: function(feat, latlng) {
-              const layer = L.circleMarker(latlng)
+              console.log('mapPin', mapPin)
+              const icon = new VectorIcon({
+                icon: 'circle',
+                iconSize,
+                iconAnchor,
+                mapPin,
+                viewBox,
+                markerColor: 'rgba(100, 100, 200, 0.5)',
+              })
+              console.log('icon', icon)
+              const layer = L.marker(latlng, { icon })
               featureStyle.setLayerStyle(layer, 'default')
               DEBUG_FAKE_CLICK_LAYER = layer // we will get the last one
               return layer

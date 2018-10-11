@@ -33,7 +33,11 @@ FeatureStyle.prototype.get = function(key) {
 }
 
 FeatureStyle.prototype.setLayerStyle =  function(layer, key) {
-  layer.setStyle(this.get(key))
+  if (layer.setStyle) {
+    layer.setStyle(this.get(key))
+  } else {
+    console.warn("Layer is not styleable")
+  }
   return layer
 }
 

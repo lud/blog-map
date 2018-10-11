@@ -32,21 +32,5 @@ L.Map.include({
 })
 
 export function buildBackgroundLayer(bgType) {
-  switch (bgType) {
-    case 'mapnik':
-      return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: 'Ⓒ <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      })
-    case 'Stamen.Terrain':
-    case 'Stamen.TerrainBackground':
-    case 'Stamen.Toner':
-    case 'Stamen.TonerBackground':
-    case 'Stamen.TonerHybrid':
-    case 'Stamen.TonerLabels':
-    case 'Stamen.TonerLines':
-    case 'Stamen.TonerLite':
-    case 'Stamen.Watercolor':
-      return L.tileLayer.provider(bgType)
-  }
+  return L.tileLayer.provider(bgType)
 }

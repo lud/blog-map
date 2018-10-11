@@ -9,7 +9,7 @@ domready(function(){
         const app = new WpMap({
           target: map.el,
           data: {
-            background: 'Stamen.Watercolor',
+            background: 'OpenTopoMap',
             mapID: map.mapID
           }
         })
