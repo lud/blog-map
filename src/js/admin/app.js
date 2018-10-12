@@ -4,7 +4,7 @@ import WpMapAdmin from './WpMapAdmin.html'
 import store from './store'
 
 function initFetch() {
-    store.fetch()
+    return store.fetch()
 }
 
 function setup() {

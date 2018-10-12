@@ -29,6 +29,13 @@ class WpMap_AdminPage {
 
     public static function render()
     {
+        // Before loading the admin panel, we will migrate the plugin to the
+        // latest code.
+        if (WpMap_Request::_GET('rollback') === 'true')
+        {
+            WpMap_Migration::rollbackEnv();
+        }
+        WpMap_Migration::migrateEnv();
         $self = new WpMap_AdminPage();
         return $self->doRender();
     }
@@ -66,6 +73,7 @@ class WpMap_AdminPage {
     {
         return array(
             'getPostsConfig' => array('GET', array('WpMap_AdminPage', 'getAdminPosts')),
+            'getMapsConfig' => array('GET', array('WpMap_AdminPage', 'getMapsConfig')),
             'patchPost' => array('PATCH', array('WpMap_AdminPage', 'patchPost')),
         );
     }
@@ -83,6 +91,14 @@ class WpMap_AdminPage {
                 WpMap_PostQuery::POST_TYPE_POST,
             )
         ));
+    }
+
+    public function getMapsConfig()
+    {
+        global $wpdb;
+        $table = WpMap_Migration::mapsTableName($wpdb);
+        return $wpdb->get_results("SELECT * FROM $table");
+        // return ['default-map' => ['name' => "Default Map"]];
     }
 
     public function patchPost($payload)

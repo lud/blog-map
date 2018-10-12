@@ -2,6 +2,7 @@ import {
   Store as BaseStore
 } from 'svelte/store'
 import {
+  getMapsConfig,
   getPostsConfig,
   patchPost,
 } from './admin-api'
@@ -29,27 +30,48 @@ class Store extends BaseStore {
 
   constructor(state = {}, options) {
     state.rawPosts = state.rawPosts || []
-    super(state, options)
+    state.mapConfigs = state.mapConfigs || {}
+    state.mapID = state.mapID || 'default-map'
+    state.initialLoading = new Promise(function willNeverResolve(){})
+    state.sortProp = null
 
-    // initial data
-    this.set({
-      initLoaded: false,
-      mapID: 'default-map',
-      sortProp: null
-    })
+    super(state, options)
 
     // computations
     this.compute('posts', ['rawPosts'], (rawPosts) => {
       return rawPosts
     })
+
+    this.compute('mapConfig', ['mapConfigs', 'mapID'], (mapConfigs, mapID) => {
+      const conf =  mapConfigs ? mapConfigs[mapID] : null
+      return conf
+    })
   }
 
   fetch() {
-    getPostsConfig()
+    const promise = Promise.all([
+      this.fetchMaps(),
+      this.fetchPosts()
+    ])
+    this.set({ initialLoading: promise })
+  }
+
+  fetchMaps() {
+    return getMapsConfig()
+      .then(data => {
+        const mapConfigs = {}
+        data.forEach(map => {
+          mapConfigs[map.id] = map
+        })
+        this.set({ mapConfigs })
+      })
+  }
+
+  fetchPosts() {
+    return getPostsConfig()
       .then(data => {
         this.set({
-          rawPosts: data,
-          initLoaded: true
+          rawPosts: data
         })
       })
   }
@@ -71,7 +93,6 @@ class Store extends BaseStore {
   }
 
   setFetchedPost(post, opts = {}) {
-    // console.log('setFetchedPost post', post)
     let { rawPosts, mapID } = this.get()
     rawPosts = list.keyReplace(rawPosts, PID, post._id, post)
     this.set({ rawPosts })

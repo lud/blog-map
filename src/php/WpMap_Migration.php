@@ -5,7 +5,7 @@ defined('ABSPATH') or exit();
 class WpMap_Migration {
 
     const MAPS_TABLE_NAME = 'wpmap_maps';
-    const VERSION_OPT = 'wpmap_version';
+    const VERSION_OPT = 'wpmap_migrations';
 
     private $mapTableName;
     private $wpdb;
@@ -14,7 +14,7 @@ class WpMap_Migration {
     {
         return array(
             'v0.0.1-createMapTable' => array('createMapTable', 'dropMapTable'),
-            'v0.0.1-createDefaultMap' => 'createDefaultMap'
+            'v0.0.1-createDefaultMap' => 'createDefaultMap',
         );
     }
 
@@ -37,12 +37,16 @@ class WpMap_Migration {
     public function __construct(wpdb $wpdb)
     {
         $this->wpdb = $wpdb;
-        $this->mapsTableName = $wpdb->prefix . self::MAPS_TABLE_NAME;
+    }
+
+    public static function mapsTableName(wpdb $wpdb)
+    {
+        return $wpdb->prefix . self::MAPS_TABLE_NAME;
     }
 
     public function getInstalledVersions()
     {
-        if (! get_option(self::VERSION_OPT, false)) {
+        if (get_option(self::VERSION_OPT, false) === false) {
             add_option(self::VERSION_OPT, array(), false, false);
         }
         return get_option(self::VERSION_OPT);
@@ -80,13 +84,14 @@ class WpMap_Migration {
                     error_log("[WpMap_Migration] apply $key");
                     $this->runMigration($key, $migration);
                     $this->registerMigration($key);
-                    error_log("[WpMap_Migration] $key success");
+                    error_log("[WpMap_Migration] apply $key success");
                 }
             }
         } catch (Exception $e) {
             // Here we must log/display the error somewhere ...
             $msg = $e->getMessage();
             error_log("[WpMap_Migration] $msg");
+            throw $e;
         }
     }
 
@@ -102,7 +107,7 @@ class WpMap_Migration {
                     error_log("[WpMap_Migration] rollback $key");
                     $this->rollbackMigration($key, $migration);
                     $this->unregisterMigration($key);
-                    error_log("[WpMap_Migration] $key rollback success");
+                    error_log("[WpMap_Migration] rollback $key success");
                 }
             }
         } catch (Exception $e) {
@@ -117,20 +122,22 @@ class WpMap_Migration {
 
     public function runMigration($key, $migration)
     {
+        global $wpdb;
         $method = is_string($migration) ? $migration : $migration[0];
-        if (! $this->{$method}()) {
-            throw new Exception("$key failure");
+        if (! $this->{$method}($wpdb)) {
+            throw new Exception("$key apply failure, method returned falsy");
         }
     }
 
     public function rollbackMigration($key, $migration)
     {
+        global $wpdb;
         if (is_string($migration)) {
             // no rollback method, skip
         } elseif (isset($migration[1])) {
             $method = $migration[1];
-            if (! $this->{$method}()) {
-                throw new Exception("$key rollback failure");
+            if (! $this->{$method}($wpdb)) {
+                throw new Exception("$key rollback failure, method returned falsy");
             }
         }
         // else if no [1] index, skip
@@ -141,43 +148,39 @@ class WpMap_Migration {
     // -----------------------------------------------------------------------
 
 
-    private function createMapTable()
+    private function createMapTable(wpdb $wpdb)
     {
-        $wpdb = $this->wpdb;
-        $table = $this->mapsTableName;
+        $table = $this->mapsTableName($wpdb);
         $charset_collate = $wpdb->get_charset_collate();
 
         $sqlCreate = "CREATE TABLE $table (
-          id varchar(32) NOT NULL,
-          name tinytext NULL,
+          id VARCHAR(32) NOT NULL,
+          name TINYTEXT NULL,
+          pin_height TINYINT UNSIGNED DEFAULT 30,
+          pin_radius TINYINT UNSIGNED DEFAULT 12,
+          background VARCHAR(32) DEFAULT 'OpenTopoMap',
           PRIMARY KEY  (id)
         ) $charset_collate;";
 
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-
-        dbDelta($sqlCreate);
-        return true;
+        return !!$wpdb->query($sqlCreate);
     }
 
-    private function dropMapTable()
+    private function dropMapTable(wpdb $wpdb)
     {
-        $table = $this->mapsTableName;
-        $wpdb = $this->wpdb;
+        $table = $this->mapsTableName($wpdb);
         $sql = "DROP TABLE IF EXISTS $table;";
         return $wpdb->query($sql);
     }
 
-    private function createDefaultMap()
+    private function createDefaultMap(wpdb $wpdb)
     {
-        $wpdb = $this->wpdb;
-        $inserted = $wpdb->insert($this->mapsTableName, array(
+        $inserted = $wpdb->insert($this->mapsTableName($wpdb), array(
                 'id' => 'default-map',
                 'name' => 'Default Map',
             )
         );
         return $inserted;
     }
-
 
 
 }

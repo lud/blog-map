@@ -1,26 +1,32 @@
 <div class="wpmap-admin">
-    <p>Map ID <code>{$mapID}</code></p>
-    {#if $posts.length === 0}
-        {#if $initLoaded}
+    {#await $initialLoading}
+        Loading ...
+        <LoadingSpinner/>
+    {:then _}
+        <p>{$mapConfig.name} (<code>{$mapID}</code>)</p>
+        {#if $posts.length === 0}
             <p>No post available</p>
         {:else}
-            Loading ...
-            <LoadingSpinner/>
+            <WpMapPostList/>
         {/if}
-    {:else}
-        <WpMapPostList/>
-    {/if}
-    <CountriesDatalist/>
-
+        <CountriesDatalist/>
+        <div>{JSON.stringify($mapConfig, 0, '  ')}</div>
+        <WpMap mapID={$mapID} background={$mapConfig.background}/>
+    {:catch error}
+        NotLoaded !
+        <p class="error">Error loading plugin</p>
+        <pre>{JSON.stringify(error.response.body.errors, 0, '  ')}</pre>
+    {/await}
 </div>
 
 <script>
 import WpMapPostList from './WpMapPostList.html'
 import LoadingSpinner from './wp/LoadingSpinner.html'
 import CountriesDatalist from './wp/CountriesDatalist.html'
+import WpMap from './../client/WpMap.html'
 
 export default {
-    components: { WpMapPostList, LoadingSpinner, CountriesDatalist }
+    components: { WpMapPostList, LoadingSpinner, CountriesDatalist, WpMap }
 }
 
 </script>

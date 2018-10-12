@@ -59,9 +59,9 @@ class WpMap_Widget extends WP_Widget {
         );
     }
 
-    public function getMapData($query)
+    public function getMapData($input)
     {
-        $mapID = isset($query['mapID']) ? $query['mapID'] : null;
+        $mapID = isset($input['mapID']) ? $input['mapID'] : null;
         if (!$mapID || !WpMap_AdminPage::isValidMapKey($mapID)) {
             throw new WpMap_ApiError(400, "Invalid mapID $mapID");
         }
@@ -80,8 +80,9 @@ class WpMap_Widget extends WP_Widget {
         $conditions = array(
             WpMap_PostQuery::POST_COLUMN_POST_STATUS => array(
                 WpMap_PostQuery::POST_STATUS_PUBLISHED,
-                // WpMap_PostQuery::POST_STATUS_DRAFT,
-                // WpMap_PostQuery::POST_STATUS_PRIVATE
+                // @todo remove those after dev:
+                WpMap_PostQuery::POST_STATUS_DRAFT,
+                WpMap_PostQuery::POST_STATUS_PRIVATE
             ),
             WpMap_PostQuery::POST_COLUMN_POST_TYPE => array(
                 WpMap_PostQuery::POST_TYPE_PAGE,

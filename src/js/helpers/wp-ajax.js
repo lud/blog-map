@@ -4,7 +4,7 @@ superagentJsonapify(superagent)
 
 function unpackJsonApi(response) {
   if (response.body) {
-    console.log('%s', JSON.stringify(response.body, 0, ' '))
+    // console.log('%s', JSON.stringify(response.body, 0, ' '))
   }
   return response.body.data
 }
