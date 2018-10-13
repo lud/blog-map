@@ -44,7 +44,7 @@ class WpMap_Request {
     public static function _GET($key = null)
     {
         if ($key) {
-            return self::$single->get[$key];
+            return isset(self::$single->get[$key]) ? self::$single->get[$key] : null;
         }
         return self::$single->get;
     }

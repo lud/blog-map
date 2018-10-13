@@ -1,0 +1,53 @@
+<div>
+  <div>
+    <label>
+      <span>Height</span>
+      <input type="range" bind:value=height min="10" max="50" on:input="refreshPin()" on:change="fireChanges()" />
+      <span>{height}</span>
+    </label>
+    <label>
+      <span>radius</span>
+      <input type="range" bind:value=radius min="4" max="24" on:input="refreshPin()" on:change="fireChanges()" />
+      <span>{radius}</span>
+    </label>
+  </div>
+  <div>
+    <svg style="height: : {height}px; width: {radius * 2};" viewBox="{viewBox}">
+      <path d="{path}" fill="red"></path>
+    </svg>
+  </div>
+
+</div>
+<script>
+    import { pinPath, pinViewBox } from '../../helpers/map-pins'
+    export default {
+        data() {
+            return {
+            }
+        },
+        computed: {
+          viewBox: ({ radius, height }) => pinViewBox(radius, height),
+          path: ({ radius, height }) => pinPath(radius, height),
+        },
+        onstate({ changed, current, previous }) {
+          // math does not work if radius too big to fit in the height
+          const { height, radius } = current
+          if (changed.radius && height <= radius * 2) {
+            this.set({ height: radius * 2 + 1 })
+          }
+          if (changed.height && height <= radius * 2) {
+            this.set({ radius: Math.round(height / 2) - 1 })
+          }
+        },
+        methods: {
+          refreshPin() {
+            console.log('refresh pin')
+          },
+          fireChanges() {
+            console.log('fire change')
+            this.fire('change', this.get())
+          }
+        }
+    }
+</script>
+
