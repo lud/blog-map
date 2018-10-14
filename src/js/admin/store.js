@@ -153,6 +153,10 @@ class Store extends BaseStore {
       )
   }
 
+  actSetPinConfig({ height, radius, fillColor, strokeColor }) {
+    console.log('actSetPinConfig', {height, radius, fillColor, strokeColor })
+  }
+
 }
 
 const store = new Store()

@@ -3,7 +3,7 @@
         Loading ...
         <LoadingSpinner/>
     {:then _}
-        <p>{$mapConfig.name} (<code>{$mapID}</code>)</p>
+        <p>{$mapConfig.name} <code>{$mapID}</code></p>
         {#if $posts.length === 0}
             <p>No post available</p>
         {:else}
@@ -12,7 +12,7 @@
         <CountriesDatalist/>
         <div>{JSON.stringify($mapConfig, 0, '  ')}</div>
 
-        <PinDesigner height={$mapConfig.pin_height} radius={$mapConfig.pin_radius} />
+        <PinDesigner on:change="$actSetPinConfig(event)" height={$mapConfig.pin_height} radius={$mapConfig.pin_radius} />
     {:catch error}
         NotLoaded !
         <p class="error">Error loading plugin</p>

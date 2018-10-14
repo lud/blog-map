@@ -1,19 +1,31 @@
 <div>
   <div>
     <label>
-      <span>Height</span>
-      <input type="range" bind:value=height min="10" max="50" on:input="refreshPin()" on:change="fireChanges()" />
-      <span>{height}</span>
+      <span>Size</span>
+      <input type="range" bind:value=height min="{minimumHeight}" max="{maximumHeight}" on:change="fixAndFire()" />
+      <span>{height}px</span>
     </label>
+    <br/>
     <label>
-      <span>radius</span>
-      <input type="range" bind:value=radius min="4" max="24" on:input="refreshPin()" on:change="fireChanges()" />
-      <span>{radius}</span>
+      <span>Shape</span>
+      <input type="range" bind:value=radius min="{minimumRadius}" max="{maximumRadius}" on:change="fixAndFire()" />
+    </label>
+    <br/>
+    <label>
+      <span>Default Fill Color</span>
+      <input type="color" bind:value=fillColor />
+      <code>{fillColor}</code>
+    </label>
+    <br/>
+    <label>
+      <span>Default Sroke Color</span>
+      <input type="color" bind:value=strokeColor />
+      <code>{strokeColor}</code>
     </label>
   </div>
   <div>
-    <svg style="height: : {height}px; width: {radius * 2};" viewBox="{viewBox}">
-      <path d="{path}" fill="red"></path>
+    <svg style="height: {height + strokeWidth * 2}px; width: {radius * 2 + strokeWidth * 2};" viewBox="{viewBox}">
+      <path d="{path}" stroke-width="{strokeWidth}" stroke="{strokeColor}" fill="{fillColor}"></path>
     </svg>
   </div>
 
@@ -23,29 +35,41 @@
     export default {
         data() {
             return {
+              fillColor: '#7babdf',
+              strokeColor: '#0088aa',
+              strokeWidth: 1,
+              minimumRadius: 7,
+              minimumHeight: 16,
+              maximumHeight: 70,
             }
         },
         computed: {
-          viewBox: ({ radius, height }) => pinViewBox(radius, height),
+          maximumRadius: ({ height }) => Math.floor(height / 2) - 1,
+          viewBox: ({ radius, height, strokeWidth }) => pinViewBox(radius, height, strokeWidth),
           path: ({ radius, height }) => pinPath(radius, height),
         },
-        onstate({ changed, current, previous }) {
-          // math does not work if radius too big to fit in the height
-          const { height, radius } = current
-          if (changed.radius && height <= radius * 2) {
-            this.set({ height: radius * 2 + 1 })
-          }
-          if (changed.height && height <= radius * 2) {
-            this.set({ radius: Math.round(height / 2) - 1 })
-          }
+        oncreate() {
+          this.on('state', ({ changed, current, previous }) => {
+            // if the height changes, we want to keep the same shape, so we
+            // change the radius accordingly
+            if (changed.height) {
+              const heightChangeRatio = current.height / previous.height
+              const newRadius = current.radius * heightChangeRatio
+              this.set({ radius: newRadius })
+            }
+          })
         },
         methods: {
-          refreshPin() {
-            console.log('refresh pin')
-          },
-          fireChanges() {
-            console.log('fire change')
-            this.fire('change', this.get())
+          fixAndFire() {
+            let { height, radius, fillColor, strokeColor } = this.get()
+            height = Math.round(height)
+            if (radius * 2 >= height) {
+              radius = height / 2 - 1
+            }
+            radius = Math.round(radius)
+            this.set({ height, radius })
+            console.log('fire change { height: %s, radius: %s }', height, radius)
+            this.fire('change', { height, radius, fillColor, strokeColor })
           }
         }
     }

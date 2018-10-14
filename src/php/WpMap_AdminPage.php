@@ -97,8 +97,12 @@ class WpMap_AdminPage {
     {
         global $wpdb;
         $table = WpMap_Migration::mapsTableName($wpdb);
-        return $wpdb->get_results("SELECT * FROM $table");
-        // return ['default-map' => ['name' => "Default Map"]];
+        $rs = $wpdb->get_results("SELECT * FROM $table");
+        foreach ($rs as &$record) {
+            $record->pin_height = (int) $record->pin_height;
+            $record->pin_radius = (int) $record->pin_radius;
+        }
+        return $rs;
     }
 
     public function patchPost($payload)
