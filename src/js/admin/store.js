@@ -5,6 +5,7 @@ import {
   getMapsConfig,
   getPostsConfig,
   patchPost,
+  patchMap
 } from './admin-api'
 import * as list from '../helpers/list.js'
 
@@ -153,8 +154,17 @@ class Store extends BaseStore {
       )
   }
 
-  actSetPinConfig({ height, radius, fillColor, strokeColor }) {
+  actSetPinConfig({height, radius, fillColor, strokeColor }) {
     console.log('actSetPinConfig', {height, radius, fillColor, strokeColor })
+    const { mapID } = this.get()
+    const pinConfig = { height, radius, fillColor, strokeColor }
+    patchMap(mapID, { pin_config: pinConfig })
+      .then(
+        data => {
+          console.log('setPinConfig map: %s, ', mapID, data)
+        }
+        // err => this.setFetchedPost(post)
+      )
   }
 
 }

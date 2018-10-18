@@ -31,7 +31,8 @@ class WpMap_AdminPage {
     {
         // Before loading the admin panel, we will migrate the plugin to the
         // latest code.
-        if (WpMap_Request::_GET('rollback') === 'true')
+        $req = WpMap_Request::getInstance();
+        if ($req->find('rollback') === 'true')
         {
             WpMap_Migration::rollbackEnv();
         }
@@ -75,6 +76,7 @@ class WpMap_AdminPage {
             'getPostsConfig' => array('GET', array('WpMap_AdminPage', 'getAdminPosts')),
             'getMapsConfig' => array('GET', array('WpMap_AdminPage', 'getMapsConfig')),
             'patchPost' => array('PATCH', array('WpMap_AdminPage', 'patchPost')),
+            'patchMap' => array('PATCH', array('WpMap_AdminPage', 'patchMap')),
         );
     }
 
@@ -96,11 +98,10 @@ class WpMap_AdminPage {
     public function getMapsConfig()
     {
         global $wpdb;
-        $table = WpMap_Migration::mapsTableName($wpdb);
+        $table = WpMap_Data::mapsTableName($wpdb);
         $rs = $wpdb->get_results("SELECT * FROM $table");
         foreach ($rs as &$record) {
-            $record->pin_height = (int) $record->pin_height;
-            $record->pin_radius = (int) $record->pin_radius;
+            $record->pin_config = json_decode($record->pin_config);
         }
         return $rs;
     }
@@ -143,6 +144,23 @@ class WpMap_AdminPage {
             }
         }
         return $this->getPostById($postID);
+    }
+
+    public function patchMap($payload)
+    {
+
+        $mapID = $payload['mapID'];
+        $changeset = $payload['changeset'];
+        $db = WpMap_Data::create();
+        if (! $map = $db->findMap($mapID)) {
+            wp_die('@todo 404');
+        }
+        foreach ($changeset as $key => &$value) {
+            $value = WpMap_Data::serializePostColumnValue($key, $value);
+        }
+        $map->set($changeset);
+        $map->save();
+        return $map->as_array();
     }
 
     private static function validateInputMeta($key, $value) {

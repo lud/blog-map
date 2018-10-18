@@ -15,3 +15,11 @@ export function patchPost(postID, changeset) {
       changeset
     })
 }
+
+export function patchMap(mapID, changeset) {
+    return wpajax
+    .patch('patchMap', {
+        mapID,
+        changeset
+    })
+}

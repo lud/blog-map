@@ -12,7 +12,7 @@
         <CountriesDatalist/>
         <div>{JSON.stringify($mapConfig, 0, '  ')}</div>
 
-        <PinDesigner on:change="$actSetPinConfig(event)" height={$mapConfig.pin_height} radius={$mapConfig.pin_radius} />
+        <PinDesigner on:change="$actSetPinConfig(event)" height={$mapConfig.pin_config.height} radius={$mapConfig.pin_config.radius} />
     {:catch error}
         NotLoaded !
         <p class="error">Error loading plugin</p>

@@ -23,6 +23,8 @@ function wpmap_autoloader($class)
 {
     if (strpos($class, 'WpMap_') === 0) {
         require_once dirname(__FILE__) . "/src/php/$class.php";
+    } elseif('ORM' === $class) {
+        require_once dirname(__FILE__) . "/idiorm.php";
     }
 }
 

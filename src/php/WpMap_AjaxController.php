@@ -40,12 +40,7 @@ class WpMap_AjaxController {
         $expectedRequestMethod = $route[0];
         list($controllerClass, $controllerMethod) = $route[1];
         // here, the action exists
-        $requestMethod = strtoupper($_SERVER['REQUEST_METHOD']);
-        if ($requestMethod === 'POST'
-        && isset($_POST['_method'])
-        && in_array($_method = strtoupper($_POST['_method']), array('PUT', 'PATCH'))) {
-            $requestMethod = $_method;
-        }
+        $requestMethod = WpMap_Request::getInstance()->getHttpVerb();
         if ($requestMethod !== $expectedRequestMethod) {
             wp_die("@todo err 40X bad method $requestMethod");
         }
@@ -76,17 +71,7 @@ class WpMap_AjaxController {
         if (!is_callable(array($controller, $method))) {
             trigger_error("@todo no method $method");
         }
-        switch ($httpVerb) {
-            case 'GET':
-                return $controller->$method(WpMap_Request::_GET());
-            case 'PATCH':
-            case 'PUT':
-            case 'POST':
-                $payload = json_decode(WpMap_Request::_POST('payload'), true);
-                return $controller->$method($payload, $httpVerb);
-            default:
-                throw new E();
-        }
+        return $controller->$method(WpMap_Request::getInstance(), $httpVerb);
     }
 
     public static function handleAjaxException($e)

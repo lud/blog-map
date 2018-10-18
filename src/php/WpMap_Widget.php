@@ -61,7 +61,7 @@ class WpMap_Widget extends WP_Widget {
 
     public function getMapData($input)
     {
-        $mapID = isset($input['mapID']) ? $input['mapID'] : null;
+        $mapID = $input['mapID'];
         if (!$mapID || !WpMap_AdminPage::isValidMapKey($mapID)) {
             throw new WpMap_ApiError(400, "Invalid mapID $mapID");
         }

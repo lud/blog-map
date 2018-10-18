@@ -4,7 +4,6 @@ defined('ABSPATH') or exit();
 
 class WpMap_Migration {
 
-    const MAPS_TABLE_NAME = 'wpmap_maps';
     const VERSION_OPT = 'wpmap_migrations';
 
     private $mapTableName;
@@ -37,11 +36,6 @@ class WpMap_Migration {
     public function __construct(wpdb $wpdb)
     {
         $this->wpdb = $wpdb;
-    }
-
-    public static function mapsTableName(wpdb $wpdb)
-    {
-        return $wpdb->prefix . self::MAPS_TABLE_NAME;
     }
 
     public function getInstalledVersions()
@@ -150,14 +144,14 @@ class WpMap_Migration {
 
     private function createMapTable(wpdb $wpdb)
     {
-        $table = $this->mapsTableName($wpdb);
+        $table = WpMap_Data::mapsTableName($wpdb);
         $charset_collate = $wpdb->get_charset_collate();
 
+        $defaultPin = '{"height": 34, "radius": 14, "fillColor": "#7babdf", "strokeColor": "#0088aa"}';
         $sqlCreate = "CREATE TABLE $table (
           id VARCHAR(32) NOT NULL,
           name TINYTEXT NULL,
-          pin_height TINYINT UNSIGNED DEFAULT 30,
-          pin_radius TINYINT UNSIGNED DEFAULT 12,
+          pin_config VARCHAR(255) DEFAULT '$defaultPin',
           background VARCHAR(32) DEFAULT 'OpenTopoMap',
           PRIMARY KEY  (id)
         ) $charset_collate;";
@@ -167,14 +161,14 @@ class WpMap_Migration {
 
     private function dropMapTable(wpdb $wpdb)
     {
-        $table = $this->mapsTableName($wpdb);
+        $table = WpMap_Data::mapsTableName($wpdb);
         $sql = "DROP TABLE IF EXISTS $table;";
         return $wpdb->query($sql);
     }
 
     private function createDefaultMap(wpdb $wpdb)
     {
-        $inserted = $wpdb->insert($this->mapsTableName($wpdb), array(
+        $inserted = $wpdb->insert(WpMap_Data::mapsTableName($wpdb), array(
                 'id' => 'default-map',
                 'name' => 'Default Map',
             )
