@@ -82,9 +82,9 @@ class Store extends BaseStore {
     // "posts" so we only sort once sortBy() is called
     const { rawPosts, sortProp: previous } = this.get()
     const desc = sortProp === previous
-    console.log('from rawPosts', rawPosts)
+    console.debug('from rawPosts', rawPosts)
     const sorted = sort(rawPosts, sortBy(p => p.props[sortProp], desc))
-    console.log('sorted', sorted.map(p => p.props[sortProp]).join(','))
+    console.debug('sorted', sorted.map(p => p.props[sortProp]).join(','))
     this.set({ rawPosts: sorted, sortProp: desc ? null : sortProp })
   }
 
@@ -98,7 +98,7 @@ class Store extends BaseStore {
     rawPosts = list.keyReplace(rawPosts, PID, post._id, post)
     this.set({ rawPosts })
     if (opts.refresh) {
-      console.log('@todo refresh map')
+      this.refreshMap()
     }
   }
 
@@ -155,18 +155,30 @@ class Store extends BaseStore {
   }
 
   actSetPinConfig({height, radius, fillColor, strokeColor }) {
-    console.log('actSetPinConfig', {height, radius, fillColor, strokeColor })
-    const { mapID } = this.get()
+    const { mapID, mapConfig } = this.get()
+    const currentConfig = mapConfig
     const pinConfig = { height, radius, fillColor, strokeColor }
     patchMap(mapID, { pin_config: pinConfig })
       .then(
-        data => {
-          console.log('setPinConfig map: %s, ', mapID, data)
+        data => this.setFetchedMapConfig(data),
+        err => {
+          console.error("Could not save map")
+          // this.setFetchedMapConfig(currentConfig)
         }
-        // err => this.setFetchedPost(post)
       )
   }
 
+  setFetchedMapConfig(conf) {
+    const { id } = conf
+    let { mapConfigs } = this.get()
+    mapConfigs = Object.assign({}, mapConfigs, {[id]: conf})
+    this.set({ mapConfigs })
+    this.refreshMap()
+  }
+
+  refreshMap() {
+    this.fire('refreshMap')
+  }
 }
 
 const store = new Store()

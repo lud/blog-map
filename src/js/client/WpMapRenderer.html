@@ -29,7 +29,6 @@
   }
 
   function setMapBackground(map, backgroundKey) {
-    console.log('set background %s', backgroundKey)
     // remove the current background
     const currentBackGround = map.meta('background')
     if (currentBackGround) {
@@ -72,8 +71,6 @@
     oncreate() {
       const { map } = mountMap(this.refs.leaflet)
       const { background, collection, featureStyle, activeArea } = this.get()
-      console.log('oncreate background', background)
-      console.log('oncreate collection', collection)
       this.set({ map })
       this.applyActiveArea(activeArea)
     },
@@ -85,8 +82,6 @@
         setMapBackground(current.map, current.background)
       }
       if (current.map && changed.collection && current.collection) {
-        console.log('current.collection is cool : ', current.collection)
-        console.log('so we call setupFeaturesLayer()')
         this.setupFeaturesLayer()
       }
       if (current.map && changed.activeArea) {
@@ -95,29 +90,26 @@
     },
     methods: {
       setupFeaturesLayer() {
-        const CONF_PIN_RADIUS = 22
-        const CONF_PIN_HEIGHT = 50
-        const iconSize = [CONF_PIN_RADIUS * 2, CONF_PIN_HEIGHT]
-        const iconAnchor = [CONF_PIN_RADIUS, CONF_PIN_HEIGHT]
-        const mapPin = pinPath(CONF_PIN_RADIUS, CONF_PIN_HEIGHT)
+        const { pinConfig } = this.get()
+        const { height: pinHeight, radius: pinRadius, fillColor, strokeColor } = pinConfig
+        const iconSize = [pinRadius * 2, pinHeight]
+        const iconAnchor = [pinRadius, pinHeight]
+        const mapPin = pinPath(pinRadius, pinHeight)
         // viewBox is x y w h, not x1 y1 x2 y2
-        const viewBox = pinViewBox(CONF_PIN_RADIUS, CONF_PIN_HEIGHT)
+        const viewBox = pinViewBox(pinRadius, pinHeight)
         let DEBUG_FAKE_CLICK_LAYER
         const self = this
         const { map, collection, featureStyle } = self.get()
-        console.log('setupFeaturesLayer collection', collection)
         const groupLayer = L.geoJson(collection, {
             pointToLayer: function(feat, latlng) {
-              console.log('mapPin', mapPin)
               const icon = new VectorIcon({
                 icon: 'circle',
                 iconSize,
                 iconAnchor,
                 mapPin,
                 viewBox,
-                markerColor: 'rgba(100, 100, 200, 0.5)',
+                markerColor: fillColor,
               })
-              console.log('icon', icon)
               const layer = L.marker(latlng, { icon })
               featureStyle.setLayerStyle(layer, 'default')
               DEBUG_FAKE_CLICK_LAYER = layer // we will get the last one
@@ -159,6 +151,13 @@
           const [lng, lat] = collection.features[0].geometry.coordinates
           map.setView([lat, lng], 10)
         }
+
+        // if the map already has a features layer, remove it before adding the layer
+        const currentFeatures = map.meta('features')
+        if (currentFeatures) {
+          map.removeLayer(currentFeatures)
+        }
+        map.meta('features', groupLayer)
         map.addLayer(groupLayer)
         groupLayer.bringToFront()
       },
@@ -174,7 +173,6 @@
           const styleName = getStyleName(layer, map.meta(META_HOVER), layer)
           featureStyle.setLayerStyle(layer, styleName)
           if (changeViewMethod && changeViewMethod in map) {
-            console.log(changeViewMethod, layer.getLatLng())
             map[changeViewMethod](layer.getLatLng(), ...zoomArgs)
           } else if (changeViewMethod) {
             throw new Error("No map method " + changeViewMethod)
@@ -208,7 +206,6 @@
       applyActiveArea(params) {
         const { map } = this.get()
         const css = Object.assign({position:'absolute'}, params)
-        console.log('apply active area', JSON.stringify(css))
         map.setActiveArea(css)
       }
     }

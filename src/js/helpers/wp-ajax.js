@@ -4,7 +4,7 @@ superagentJsonapify(superagent)
 
 function unpackJsonApi(response) {
   if (response.body) {
-    // console.log('%s', JSON.stringify(response.body, 0, ' '))
+    // console.debug('%s', JSON.stringify(response.body, 0, ' '))
   }
   return response.body.data
 }
@@ -13,15 +13,16 @@ function errorLogger(httpError) {
   const { response } = httpError
   if (!response) {
     console.error("Response missing in", httpError)
+    console.error(httpError)
   }
   if (response.body && response.body.errors) {
     response.body.errors.forEach(err => {
       console.error('[API Error] ' + err.title)
       if (err.detail) {
-        console.log(err.detail)
+        console.debug(err.detail)
       }
       if (err.meta) {
-        console.log(JSON.stringify(err.meta, 0, '  '))
+        console.debug(JSON.stringify(err.meta, 0, '  '))
       }
     })
   } else {
@@ -36,12 +37,13 @@ const endpoint = window.ajaxurl || window._wpmap_loc.ajaxurl
 
 const api = {
   get(action, params = {}) {
+    const query = Object.assign({}, params, {
+      action
+    })
     return superagent
       .get(endpoint)
       .accept('application/json')
-      .query(Object.assign({}, params, {
-        action
-      }))
+      .query(query)
       .then(unpackJsonApi, errorLogger)
   },
   patch(action, payload) {

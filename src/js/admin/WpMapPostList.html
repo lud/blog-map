@@ -5,7 +5,7 @@
         <th>Title</th>
         <th>Type</th>
         <th>Status</th>
-        <th>Vis</th>
+        <!-- <th>Vis</th> -->
         <th>Visible</th>
         <th>Country</th>
         <th>Location</th>
@@ -17,8 +17,7 @@
             <td>{post.props.title}</td>
             <td>{post.props.type}</td>
             <td>{post.props.status}</td>
-            <td>{JSON.stringify(post.meta.wpmap_visibilities)}</td>
-            <!-- <pre>{JSON.stringify(post, 0, ' ')}</pre> -->
+            <!-- <td>{JSON.stringify(post.meta.wpmap_visibilities)}</td> -->
             <td>
                 <ToggleSwitch
                     checked="{onCurrentMap(post)}"

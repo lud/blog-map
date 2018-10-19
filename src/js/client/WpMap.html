@@ -1,6 +1,7 @@
 <Map ref:map
    mapID="{mapID}"
-   background="{background}"
+   background="{config.background}"
+   pinConfig="{config.pin_config}"
    collection="{collection}"
    activeArea="{mapAreaConfigs[mapArea]}"
    on:click_feature="handleMapSelection(event, true)">
@@ -87,7 +88,6 @@
         const { mapID } = this.get()
         fetchPosts(mapID)
         	.then(featureCollection => {
-        		console.log('fetched posts', featureCollection)
         		this.setFeatureCollection(featureCollection)
         	})
       },

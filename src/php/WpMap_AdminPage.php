@@ -156,11 +156,15 @@ class WpMap_AdminPage {
             wp_die('@todo 404');
         }
         foreach ($changeset as $key => &$value) {
-            $value = WpMap_Data::serializePostColumnValue($key, $value);
+            $value = WpMap_Data::serializeMapColumnValue($key, $value);
         }
         $map->set($changeset);
         $map->save();
-        return $map->as_array();
+        $data = $map->as_array();
+        foreach ($data as $key => &$value) {
+            $value = WpMap_Data::unserializeMapColumnValue($key, $value);
+        }
+        return $data;
     }
 
     private static function validateInputMeta($key, $value) {

@@ -53,7 +53,7 @@ class WpMap_AjaxController {
             } elseif (is_array($response) || is_object($response)) {
                 echo json_encode(array('data' => $response));
             } elseif (null === $response) {
-                echo '{data: "ok"}';
+                echo json_encode(['data' => 'ok']);
             } else {
                 $returned = WP_DEBUG
                     ? var_export($response, true)

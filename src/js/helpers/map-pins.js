@@ -16,7 +16,6 @@ export function pinPath(radius, height) {
     const deltaX = radius * Math.sin(alpha)
     const deltaY = height * (height - radius * 2) / (height - radius)
     const Ax = 0, Ay = 0, Bx = -deltaX, By = -deltaY, Dx = deltaX, Dy = -deltaY
-    // console.log('radius: %s, height: %s, alpha: %s, deltaX: %s, deltaY: %s', radius, height, alpha, deltaX, deltaY)
     return `M ${Ax},${Ay}
             L ${Bx},${By}
             A ${radius} ${radius} 1 1 1 ${Dx},${Dy}

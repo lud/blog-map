@@ -13,13 +13,13 @@
     <br/>
     <label>
       <span>Default Fill Color</span>
-      <input type="color" bind:value=fillColor />
+      <input type="color" bind:value=fillColor on:change="fireChange()"/>
       <code>{fillColor}</code>
     </label>
     <br/>
     <label>
       <span>Default Sroke Color</span>
-      <input type="color" bind:value=strokeColor />
+      <input type="color" bind:value=strokeColor on:change="fireChange()"/>
       <code>{strokeColor}</code>
     </label>
   </div>
@@ -68,7 +68,10 @@
             }
             radius = Math.round(radius)
             this.set({ height, radius })
-            console.log('fire change { height: %s, radius: %s }', height, radius)
+            this.fireChange()
+          },
+          fireChange() {
+            const { height, radius, fillColor, strokeColor } = this.get()
             this.fire('change', { height, radius, fillColor, strokeColor })
           }
         }

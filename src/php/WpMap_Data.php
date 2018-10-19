@@ -44,7 +44,7 @@ class WpMap_Data {
             ->findOne();
     }
 
-    public static function serializePostColumnValue($key, $value)
+    public static function serializeMapColumnValue($key, $value)
     {
         switch ($key) {
             case 'pin_config':
@@ -54,7 +54,17 @@ class WpMap_Data {
                 $value = json_encode($value);
                 break;
             default:
-                throw new InvalidArgumentException("Unauthorized key $key");
+                throw new InvalidArgumentException("Serialize unauthorized key $key");
+        }
+        return $value;
+    }
+
+    public static function unserializeMapColumnValue($key, $value)
+    {
+        switch ($key) {
+            case 'pin_config':
+                $value = json_decode($value);
+                break;
         }
         return $value;
     }

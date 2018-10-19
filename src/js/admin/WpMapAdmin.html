@@ -10,13 +10,13 @@
             <WpMapPostList/>
         {/if}
         <CountriesDatalist/>
-        <div>{JSON.stringify($mapConfig, 0, '  ')}</div>
+        <!-- <pre>{JSON.stringify($mapConfig, 0, '  ')}</pre> -->
 
-        <PinDesigner on:change="$actSetPinConfig(event)" height={$mapConfig.pin_config.height} radius={$mapConfig.pin_config.radius} />
+        <WpMap ref:map mapID={$mapID} config={$mapConfig}/>
+        <PinDesigner on:change="$actSetPinConfig(event)" height={$mapConfig.pin_config.height} radius={$mapConfig.pin_config.radius} fillColor={$mapConfig.pin_config.fillColor} strokeColor={$mapConfig.pin_config.strokeColor} />
     {:catch error}
         NotLoaded !
         <p class="error">Error loading plugin</p>
-        <pre>{JSON.stringify(error.response.body.errors, 0, '  ')}</pre>
     {/await}
 </div>
 
@@ -28,12 +28,17 @@ import PinDesigner from './wp/PinDesigner.html'
 import WpMap from './../client/WpMap.html'
 
 export default {
-    components: { WpMapPostList
-                , LoadingSpinner
-                , CountriesDatalist
-                , WpMap
-                , PinDesigner
-            }
+  components: {
+    WpMapPostList,
+    LoadingSpinner,
+    CountriesDatalist,
+    WpMap,
+    PinDesigner
+  },
+  oncreate() {
+  	this.store.on('refreshMap', () => {
+  		this.refs.map.fetch()
+  	})
+  }
 }
-
 </script>
