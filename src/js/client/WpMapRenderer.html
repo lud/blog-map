@@ -95,8 +95,9 @@
         const iconSize = [pinRadius * 2, pinHeight]
         const iconAnchor = [pinRadius, pinHeight]
         const mapPin = pinPath(pinRadius, pinHeight)
+        const DEFAULT_STROKE_WIDTH = 1
         // viewBox is x y w h, not x1 y1 x2 y2
-        const viewBox = pinViewBox(pinRadius, pinHeight)
+        const viewBox = pinViewBox(pinRadius, pinHeight, DEFAULT_STROKE_WIDTH)
         let DEBUG_FAKE_CLICK_LAYER
         const self = this
         const { map, collection, featureStyle } = self.get()
@@ -109,6 +110,8 @@
                 mapPin,
                 viewBox,
                 markerColor: fillColor,
+                markerBorderColor: strokeColor,
+                markerBorderWidth: DEFAULT_STROKE_WIDTH,
               })
               const layer = L.marker(latlng, { icon })
               featureStyle.setLayerStyle(layer, 'default')
