@@ -55,7 +55,8 @@ class WpMap_Widget extends WP_Widget {
     public static function ajaxRoutes()
     {
         return array(
-            'getMapData' => array('GET', array('WpMap_Widget', 'getMapData'))
+            'getMapData' => array('GET', array('WpMap_Widget', 'getMapData')),
+            'getPostInfos' => array('GET', array('WpMap_Widget', 'getPostInfos')),
         );
     }
 
@@ -97,6 +98,21 @@ class WpMap_Widget extends WP_Widget {
             ->where($conditions)
             ->all();
         return $this->postsToFeatureCollection($posts);
+    }
+
+    public function getPostInfos($input) {
+        $postID = $input['postID'];
+        // get_the_excerpt/1 requires to be called within theloop if the post
+        // has no excerpt to be able to generate an excerpt from the post
+        // content. The bug is because get_the_content expects to be called
+        // within the loop. So we have to simulate the loop by assigning the
+        // global $post AND setup_postdata()
+        global $post;
+        $post = get_post($postID);
+        setup_postdata($post);
+        $excerpt = preg_replace('~<a.*</a>~', '', get_the_excerpt());
+        $date = get_the_date();
+        return compact('excerpt', 'date');
     }
 
     public static function postsToFeatureCollection($posts)

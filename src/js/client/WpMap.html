@@ -7,17 +7,33 @@
    on:click_feature="handleMapSelection(event, true)">
   {#if page && page.title}
     <div class="wpmap-panel" transition:fly="{y: 100, duration: 500}">
-      <b><a href="{page.url}">{page.title}</a></b>
-      <div>
-        {#await pageDescriptionPromise}
-          <p>Chargement de la description ...</p>
-        {:then description}
-          <p>{description}</p>
-        {:catch}
+      <a class="wpmap-post-title" href="{page.url}">{page.title}</a>
+      <div class="wpmap-excerpt">
+        {#await postInfoPromise}
+          <p class="loading">Chargement de la description ...</p>
+        {:then infos}
+          <p>{@html infos.excerpt}</p>
+        {:catch e}
+          {console.error(e) || JSON.stringify(e)}
           <p class="error">Impossible de charger la description</p>
         {/await}
       </div>
-      <a href="#" on:click="closeInfoPanel(event)">close</a>
+      <div class="wpmap-controls">
+        <span class="wpmap-date">
+        Publié le
+        {#await postInfoPromise}
+          <span class="loading">...</span>
+        {:then infos}
+          <span>{@html infos.date}</span>
+        {:catch e}
+          {console.error(e) || JSON.stringify(e)}
+          <span class="error">error</span>
+        {/await}
+        </span>
+
+        <a class="wpmap-btn" href="{page.url}">Read More</a>
+        <a href="#" class="wpmap-btn" on:click="closeInfoPanel(event)">fermer</a>
+      </div>
     </div>
   {/if}
 </Map>
@@ -25,7 +41,7 @@
 <script>
   import { fly } from 'svelte-transitions'
   import Map from './WpMapRenderer.html'
-  import { fetchPosts, getPageMetaDescription } from './data-source'
+  import { fetchPosts, getPostInfos } from './data-source'
 
   function generateGlobalId() {
     return 'wpmap-' + Math.round(Date.now() + Math.random() * Date.now()).toString(36)
@@ -35,7 +51,7 @@
     components: { Map },
     data() {
       return {
-        pageDescriptionPromise: null,
+        postInfoPromise: null,
         collection: null,
         page: null,
         nextPage: null,
@@ -54,12 +70,10 @@
     onstate({ changed, current, previous }) {
       if (changed.page && current.page) {
         const { page } = current
-        const { url } = page
+        const { ID } = page
         // @todo maybe reject if no url ?
-        const pDesc = url
-          ? getPageMetaDescription(url)
-          : Promise.resolve('__NO_DESCRIPTION__')
-        this.set({ pageDescriptionPromise: pDesc })
+        const pDesc = getPostInfos(ID)
+        this.set({ postInfoPromise: pDesc })
       }
       // we want to show a page. But if a page is already there, we
       // want to trigger the info panel load manually. So new page to show
@@ -115,17 +129,58 @@
 
 <style>
   .wpmap-panel {
+    box-sizing: border-box;
+    /*height: 50%;*/
     background: purple;
     color: white;
-    padding: 1.5em;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
+    padding: 10px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
     position: absolute;
-    height: 50%;
     z-index: 900;
+    display: flex;
+    flex-direction: column;
   }
   .wpmap-panel a {
     color: white;
+  }
+  .wpmap-post-title {
+    font-size: 21px;
+    font-weight: bold;
+    line-height: 40px;
+    text-decoration: none;
+  }
+  .wpmap-controls {
+    line-height: 30px;
+    display: flex;
+    margin: 21px 0;
+  }
+  .wpmap-controls .wpmap-date {
+    flex-grow: 2;
+  }
+  .wpmap-excerpt {
+    flex-grow: 1;
+    overflow-y: hidden;
+  }
+  .wpmap-excerpt p {
+    line-height: 20px;
+    max-height: 80px;
+    margin: 0;
+    padding: 0;
+  }
+  .loading {
+    color: #aaa;
+  }
+  .error {
+    color: darkred;
+  }
+  .wpmap-btn {
+    border: 1px solid white;
+    text-decoration: none;
+    font-weight: normal;
+    border-radius: 4px;
+    padding: 0 4px;
+    margin: 0 4px;
   }
 </style>

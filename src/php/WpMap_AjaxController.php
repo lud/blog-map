@@ -48,9 +48,7 @@ class WpMap_AjaxController {
         try {
             header('Content-Type: application/vnd.api+json');
             $response = $this->callAction($controller, $controllerMethod, $requestMethod);
-            if (is_string($response)) {
-                echo json_encode(array('data' => $response));
-            } elseif (is_array($response) || is_object($response)) {
+            if (is_array($response) || is_object($response) || is_string($response)) {
                 echo json_encode(array('data' => $response));
             } elseif (null === $response) {
                 echo json_encode(['data' => 'ok']);

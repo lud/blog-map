@@ -9,7 +9,7 @@ function unpackJsonApi(response) {
   return response.body.data
 }
 
-function errorLogger(httpError) {
+export function errorLogger(httpError) {
   const { response } = httpError
   if (!response) {
     console.error("Response missing in", httpError)
