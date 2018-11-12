@@ -6,7 +6,7 @@
    activeArea="{mapAreaConfigs[mapArea]}"
    on:click_feature="handleMapSelection(event, true)">
   {#if page && page.title}
-    <div class="wpmap-panel" transition:fly="{y: 200, duration: 300}">
+    <div class="wpmap-panel" transition:fly="{y: 100, duration: 500}">
       <b><a href="{page.url}">{page.title}</a></b>
       <div>
         {#await pageDescriptionPromise}
@@ -71,7 +71,7 @@
           this.set({ page: null })
           setTimeout(() => {
             this.set({ page, nextPage: null })
-          }, 300)
+          }, 100)
         } else {
           this.set({ page, nextPage: null })
         }
