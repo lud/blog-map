@@ -2,6 +2,7 @@ import domready from 'domready'
 
 import WpMapAdmin from './WpMapAdmin.html'
 import store from './store'
+import loadFa from '../helpers/fa-loader'
 
 function initFetch() {
     return store.fetch()
@@ -17,6 +18,7 @@ function setup() {
 domready(function(){
     setup()
     initFetch()
+    loadFa()
 })
 
 // window.initFetch = initFetch

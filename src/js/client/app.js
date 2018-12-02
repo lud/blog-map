@@ -1,6 +1,7 @@
 // import mapRenderer from './map-renderer'
 import WpMap from './WpMap.html'
 import domready from 'domready'
+import loadFa from '../helpers/fa-loader'
 
 domready(function(){
     const { maps } = window._wpmap
@@ -13,4 +14,5 @@ domready(function(){
           }
         })
     })
+    loadFa()
 })

@@ -1,4 +1,4 @@
-import L from 'leaflet'
+import { L } from '../helpers/leaflet-loader'
 
 // we will patch the meta functionality directly on leaflet
 

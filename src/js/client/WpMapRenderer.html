@@ -9,12 +9,9 @@
 </style>
 
 <script>
+  import { L, VectorIcon } from '../helpers/leaflet-loader'
   import 'leaflet/dist/leaflet.css'
   import 'leaflet-vector-icon/dist/leaflet-vector-icon.css'
-  import L from 'leaflet'
-  import VectorIcon from 'leaflet-vector-icon'
-  import 'leaflet-providers'
-  import 'leaflet-active-area'
   import FeatureStyle from './feature-style'
   import {
     buildBackgroundLayer,
@@ -104,7 +101,7 @@
         const groupLayer = L.geoJson(collection, {
             pointToLayer: function(feat, latlng) {
               const icon = new VectorIcon({
-                icon: 'circle',
+                icon: 'coffee',
                 iconSize,
                 iconAnchor,
                 mapPin,
