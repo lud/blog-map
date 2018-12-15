@@ -84,7 +84,31 @@ SQL;
         return $this->fetchLayerKeys($layer, array('icon', 'visible'));
     }
 
-    public function posts($mapID, $drafts = false)
+    public function mapPosts($mapID)
+    {
+        $sql = <<<'SQL'
+            SELECT p.ID,
+                   p.ID as {POST_KEY},
+                   p.post_title as "title",
+                   p.guid as "url",
+                   p.post_status as "status",
+                   p.post_type as "type",
+                   lc.icon as "icon",
+                   m1.meta_value as "wpmap_latlng",
+                   m2.meta_value as "wpmap_country_alpha2",
+                   m3.meta_value as "wpmap_geocoded"
+            FROM {POSTS_TABLE_NAME} p
+            LEFT JOIN {POSTS_LAYERCONF_TABLE_NAME} lc ON p.ID = lc.post_id AND lc.map_id = :map_id
+            LEFT JOIN {META_TABLE_NAME} m1 ON p.ID = m1.post_id AND m1.meta_key = 'wpmap_latlng'
+            LEFT JOIN {META_TABLE_NAME} m2 ON p.ID = m2.post_id AND m2.meta_key = 'wpmap_country_alpha2'
+            LEFT JOIN {META_TABLE_NAME} m3 ON p.ID = m3.post_id AND m3.meta_key = 'wpmap_geocoded'
+            WHERE lc.visible = 1
+              AND p.post_status = 'publish'
+SQL;
+        return $this->runPostQuery($sql, array(':map_id' => $mapID));
+    }
+
+    public function posts($mapID)
     {
         $sql = <<<'SQL'
             SELECT p.ID,
@@ -222,9 +246,25 @@ SQL;
     private function fetchLayerKeys($record, $keys) {
         $result = new stdClass;
         foreach ($keys as $key) {
-            $result->$key = WpMap_Serializer::unserializePostLayerConf($key, $record->$key);
+            $result->$key = is_null($record->$key)
+                ? $this->defaultLayerConfValue($key)
+                : WpMap_Serializer::unserializePostLayerConf($key, $record->$key)
+                ;
         }
         return $result;
+    }
+
+    private function defaultLayerConfValue($key)
+    {
+        switch ($key) {
+            case 'icon':
+                return 'circle';
+            case 'visible':
+                return 0;
+            default:
+                throw new \Exception("No default value for layer conf key '$key'");
+                break;
+        }
     }
 
     private function forTable($table)

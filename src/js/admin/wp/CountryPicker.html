@@ -7,7 +7,7 @@
       placeholder="{countryName}"
       on:keyup="onNameInput(this.value)"
       on:change="onNameInput(this.value, true)">
-  	<span class="status-bg">{statusText}</span>
+  	<span class="map-status-bg">{statusText}</span>
   {:else}
     <span on:click="startEditMode()" class="status-bg">{countryName} [{value || '?'}]</span>
   {/if}

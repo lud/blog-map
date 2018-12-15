@@ -9,6 +9,8 @@
         <th>Visible</th>
         <th>Country</th>
         <th>Location</th>
+        <th>LatLng</th>
+        <th>Icône</th>
     </tr>
     {#each $posts as post}
         <tr class="wpmap-admin-posts-list-item map-status-{postMapStatus(post)}">
@@ -16,11 +18,9 @@
             <td class="map-status-bg">{post._id}</td>
             <td>{post.props.title}</td>
             <td>{post.props.type}</td>
-            <td>{post.props.status}</td>
+            <td><span class="{postStatusClass(post.props.status)}">{post.props.status}</span></td>
             <!-- <td>{JSON.stringify(post.meta.wpmap_visibilities)}</td> -->
             <td>
-                {JSON.stringify(post.layer)}
-
                 <ToggleSwitch
                     checked="{post.layer.visible}"
                     on="{WPMAP_VIS_ONMAP}"
@@ -39,6 +39,12 @@
                     on:change="$actSetPostGeocoding(post._id, event)"/>
             </td>
             <td>{post.meta.wpmap_latlng}</td>
+            <td>
+                <input type="text"
+                    value="{post.layer.icon}"
+                    on:change="$actSetPostIcon(post._id, this.value)"/>
+            </td>
+            <td>{post.layer.icon}</td>
         </tr>
     {/each}
     </table>
@@ -64,13 +70,17 @@ export default {
     components: { ToggleSwitch, CountryPicker, Geocoder },
     helpers: {
         postMapStatus: post => {
-            // show if a post is ok to be on the map. If the post is set to
-            // be on the map, the only thing required is coordinates
-            // If not on the map, we return default status (with no style)
+            // show if a post is ok to be on the map. If the post is NOT set to
+            // be on the map, we just reurn 'none'
             if (post.layer.visible) {
-                return Array.isArray(post.meta.wpmap_latlng) ? 'ok' : 'error'
+                const isOK = Array.isArray(post.meta.wpmap_latlng)
+                          && 'publish' === post.props.status
+                return isOK ? 'ok' : 'error'
             }
             return 'none';
+        },
+        postStatusClass: status => {
+            return 'map-status-poststatus-' + ((status === 'publish') ? 'ok' : 'error')
         }
     }
 }
@@ -90,5 +100,8 @@ export default {
     }
     .map-status-ok .map-status-bg {
         background-color: #cfc;
+    }
+    .map-status-error .map-status-poststatus-error {
+        background-color: #fcc;
     }
 </style>

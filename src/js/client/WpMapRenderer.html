@@ -101,7 +101,7 @@
         const groupLayer = L.geoJson(collection, {
             pointToLayer: function(feat, latlng) {
               const icon = new VectorIcon({
-                icon: 'coffee',
+                icon: feat.properties.icon || 'circle',
                 iconSize,
                 iconAnchor,
                 mapPin,
@@ -134,29 +134,27 @@
             featureStyle.setLayerStyle(layer, styleName)
           })
 
-          // setTimeout(function(){
-          //   self.fire('click_feature', {
-          //     feature: DEBUG_FAKE_CLICK_LAYER.feature,
-          //     layer: DEBUG_FAKE_CLICK_LAYER,
-          //     group: 'debug undef'
-          //   })
-          // }, 1)
+        const currentFeatures = map.meta('features')
+        if (currentFeatures) {
+          map.removeLayer(currentFeatures)
+        }
+
         if (collection.features.length > 1) {
           map.fitBounds(groupLayer.getBounds(), {
             padding: [50, 50],
             animate: false
           })
-        } else {
+        } else if (collection.features.length === 1) {
           // geojson is lonlat, but leaflet is latlng
           const [lng, lat] = collection.features[0].geometry.coordinates
           map.setView([lat, lng], 10)
+        } else {
+          // No features
+          map.meta('features', null)
+          return
         }
 
         // if the map already has a features layer, remove it before adding the layer
-        const currentFeatures = map.meta('features')
-        if (currentFeatures) {
-          map.removeLayer(currentFeatures)
-        }
         map.meta('features', groupLayer)
         map.addLayer(groupLayer)
         groupLayer.bringToFront()

@@ -48,7 +48,7 @@ class WpMap_AdminPage {
         if (!$mapID || !WpMap_AdminPage::isValidMapKey($mapID)) {
             throw new WpMap_ApiError(400, "Invalid mapID $mapID");
         }
-        return WpMap_Data::getInstance()->posts($mapID, $drafts = true);
+        return WpMap_Data::getInstance()->posts($mapID);
     }
 
     public function getMapsConfig()
@@ -115,6 +115,7 @@ class WpMap_AdminPage {
         if (! $map = $db->findMap($mapID)) {
             wp_die('@todo 404');
         }
+        return $map;
     }
 
     private function ensurePostExists($postID)
@@ -128,16 +129,16 @@ class WpMap_AdminPage {
     public function patchMap($payload)
     {
         $mapID = $payload['mapID'];
-        static::ensureMapExists($mapID);
+        $map = static::ensureMapExists($mapID);
         $changeset = $payload['changeset'];
         foreach ($changeset as $key => &$value) {
-            $value = WpMap_Data::serializeMapColumnValue($key, $value);
+            $value = WpMap_Serializer::serializeMapColumnValue($key, $value);
         }
         $map->set($changeset);
         $map->save();
         $data = $map->as_array();
         foreach ($data as $key => &$value) {
-            $value = WpMap_Data::unserializeMapColumnValue($key, $value);
+            $value = WpMap_Serializer::unserializeMapColumnValue($key, $value);
         }
         return $data;
     }

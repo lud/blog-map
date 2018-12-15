@@ -186,8 +186,8 @@ class WpMap_Migration {
         $sqlCreate = "CREATE TABLE $table (
           post_id BIGINT(20) NOT NULL,
           map_id VARCHAR(32) NOT NULL,
-          visible BOOLEAN DEFAULT 0,
-          icon VARCHAR(32) DEFAULT 'circle',
+          visible BOOLEAN NOT NULL DEFAULT 0,
+          icon VARCHAR(32) NOT NULL DEFAULT 'circle',
           PRIMARY KEY  (post_id, map_id)
         ) $charset_collate;";
 

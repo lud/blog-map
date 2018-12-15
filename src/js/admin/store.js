@@ -162,6 +162,13 @@ class Store extends BaseStore {
     })
   }
 
+  actSetPostIcon(postID, icon) {
+    const post = this.getPost(postID)
+    const { mapID } = this.get()
+    const newLayer = Object.assign({}, post.layer, { icon })
+    this.patchPostLayer(post, mapID, newLayer)
+  }
+
   actSetPinConfig({height, radius, fillColor, strokeColor }) {
     const { mapID, mapConfig } = this.get()
     const currentConfig = mapConfig

@@ -66,7 +66,7 @@ class WpMap_Widget extends WP_Widget {
         if (!$mapID || !WpMap_AdminPage::isValidMapKey($mapID)) {
             throw new WpMap_ApiError(400, "Invalid mapID $mapID");
         }
-        $posts = WpMap_Data::getInstance()->posts($mapID, $drafts = true);
+        $posts = WpMap_Data::getInstance()->mapPosts($mapID, $drafts = false);
         return $this->postsToFeatureCollection($posts);
     }
 
@@ -91,7 +91,7 @@ class WpMap_Widget extends WP_Widget {
         foreach ($posts as $post) {
             $feature = array(
                 'type' => 'Feature',
-                'properties' => $post->props,
+                'properties' => (object) array_merge((array) $post->props, (array) $post->layer),
                 'geometry' => array(
                     'type' => 'Point',
                     'coordinates' => latlngToLonlat($post->meta->wpmap_latlng)
