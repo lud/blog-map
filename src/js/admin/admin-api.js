@@ -1,7 +1,7 @@
 import wpajax from '../helpers/wp-ajax.js'
 
-export function getPostsConfig() {
-  return wpajax.get('getPostsConfig')
+export function getPostsConfig(mapID) {
+  return wpajax.get('getPostsConfig', { mapID })
 }
 
 export function getMapsConfig() {

@@ -4,7 +4,7 @@ import {
 import {
   getMapsConfig,
   getPostsConfig,
-  patchPost,
+  patchPost as _patchPost,
   patchMap
 } from './admin-api'
 import * as list from '../helpers/list.js'
@@ -52,7 +52,7 @@ class Store extends BaseStore {
   fetch() {
     const promise = Promise.all([
       this.fetchMaps(),
-      this.fetchPosts()
+      this.fetchPosts(this.get().mapID)
     ])
     this.set({ initialLoading: promise })
   }
@@ -68,8 +68,8 @@ class Store extends BaseStore {
       })
   }
 
-  fetchPosts() {
-    return getPostsConfig()
+  fetchPosts(mapID) {
+    return getPostsConfig(mapID)
       .then(data => {
         this.set({
           rawPosts: data
@@ -102,6 +102,14 @@ class Store extends BaseStore {
     }
   }
 
+  patchPost(post, changeset, opts = {refresh: true}) {
+    console.log('get id', post)
+    _patchPost(post.id, changeset).then(
+      newPost => this.setFetchedPost(newPost, opts),
+      err => this.setFetchedPost(post)
+    )
+  }
+
   actTogglePostVisibilities(postID, visibility) {
     // No need to update the post in the state as this comes from
     // an input so it has already its current value. But if the
@@ -111,15 +119,11 @@ class Store extends BaseStore {
     const newVisibilities = Object.assign({}, post.meta.wpmap_visibilities, {
         [this.get().mapID]: visibility
     })
-    patchPost(postID, {
-        meta: {
-            wpmap_visibilities: newVisibilities
-        }
-      })
-      .then(
-        data => this.setFetchedPost(data, {refresh: true}),
-        err => this.setFetchedPost(post)
-      )
+    this.patchPost(post, {
+      meta: {
+          wpmap_visibilities: newVisibilities
+      }
+    })
   }
 
   actSetPostCountryCode(postID, alpha2) {
@@ -127,31 +131,23 @@ class Store extends BaseStore {
     const clone = JSON.parse(JSON.stringify(post))
     clone.meta.wpmap_country_alpha2 = alpha2
     this.setFetchedPost(clone)
-    patchPost(postID, {
-        meta: {
-            wpmap_country_alpha2: alpha2
-        }
-      })
-      .then(
-        data => this.setFetchedPost(data, {refresh: true}),
-        err => this.setFetchedPost(post)
-      )
+    patchPost(post, {
+      meta: {
+          wpmap_country_alpha2: alpha2
+      }
+    })
   }
 
   actSetPostGeocoding(postID, { display_name: geocoded, lat, lon }) {
     const latlng = [lat, lon]
     const post = this.getPost(postID)
 
-    patchPost(postID, {
-        meta: {
-          wpmap_geocoded: geocoded,
-          wpmap_latlng: latlng,
-        }
-      })
-      .then(
-        data => this.setFetchedPost(data, {refresh: true}),
-        err => this.setFetchedPost(post)
-      )
+    patchPost(post, {
+      meta: {
+        wpmap_geocoded: geocoded,
+        wpmap_latlng: latlng,
+      }
+    })
   }
 
   actSetPinConfig({height, radius, fillColor, strokeColor }) {

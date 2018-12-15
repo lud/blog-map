@@ -44,7 +44,7 @@ class WpMap_Request implements ArrayAccess {
                 $this->input = $payload;
                 break;
             default:
-                $this->input = [];
+                $this->input = array();
                 break;
         }
     }

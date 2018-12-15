@@ -4,7 +4,7 @@ defined('ABSPATH') or exit();
 
 class WpMap_Migration {
 
-    const VERSION_OPT = 'wpmap_migrations';
+    const VERSION_OPT_KEY = 'wpmap_migrations';
 
     private $mapTableName;
     private $wpdb;
@@ -12,8 +12,9 @@ class WpMap_Migration {
     private static function migrations()
     {
         return array(
-            'v0.0.1-createMapTable' => array('createMapTable', 'dropMapTable'),
+            'v0.0.1-createMapsTable' => array('createMapsTable', 'dropMapsTable'),
             'v0.0.1-createDefaultMap' => 'createDefaultMap',
+            'v0.0.2-createPostsLayerconfTable' => array('createPostsLayerconfTable', 'dropPostsLayerconfTable'),
         );
     }
 
@@ -40,15 +41,16 @@ class WpMap_Migration {
 
     public function getInstalledVersions()
     {
-        if (get_option(self::VERSION_OPT, false) === false) {
-            add_option(self::VERSION_OPT, array(), false, false);
+        if (get_option(self::VERSION_OPT_KEY, false) === false) {
+            add_option(self::VERSION_OPT_KEY, array(), false, false);
         }
-        return get_option(self::VERSION_OPT);
+        // returns an array of options with given key
+        return get_option(self::VERSION_OPT_KEY);
     }
 
     public function setInstalledVersions($versions)
     {
-        update_option(self::VERSION_OPT, $versions);
+        update_option(self::VERSION_OPT_KEY, $versions);
     }
 
     public function registerMigration($key)
@@ -142,7 +144,7 @@ class WpMap_Migration {
     // -----------------------------------------------------------------------
 
 
-    private function createMapTable(wpdb $wpdb)
+    private function createMapsTable(wpdb $wpdb)
     {
         $table = WpMap_Data::mapsTableName($wpdb);
         $charset_collate = $wpdb->get_charset_collate();
@@ -159,7 +161,7 @@ class WpMap_Migration {
         return !!$wpdb->query($sqlCreate);
     }
 
-    private function dropMapTable(wpdb $wpdb)
+    private function dropMapsTable(wpdb $wpdb)
     {
         $table = WpMap_Data::mapsTableName($wpdb);
         $sql = "DROP TABLE IF EXISTS $table;";
@@ -174,6 +176,29 @@ class WpMap_Migration {
             )
         );
         return $inserted;
+    }
+
+    private function createPostsLayerconfTable(wpdb $wpdb)
+    {
+        $table = WpMap_Data::postsLayerconfTableName($wpdb);
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $sqlCreate = "CREATE TABLE $table (
+          post_id BIGINT(20) NOT NULL,
+          map_id VARCHAR(32) NOT NULL,
+          visible BOOLEAN DEFAULT 0,
+          icon VARCHAR(32) DEFAULT 'circle',
+          PRIMARY KEY  (post_id, map_id)
+        ) $charset_collate;";
+
+        return !!$wpdb->query($sqlCreate);
+    }
+
+    private function dropPostsLayerconfTable(wpdb $wpdb)
+    {
+        $table = WpMap_Data::postsLayerconfTableName($wpdb);
+        $sql = "DROP TABLE IF EXISTS $table;";
+        return $wpdb->query($sql);
     }
 
 

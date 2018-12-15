@@ -66,37 +66,7 @@ class WpMap_Widget extends WP_Widget {
         if (!$mapID || !WpMap_AdminPage::isValidMapKey($mapID)) {
             throw new WpMap_ApiError(400, "Invalid mapID $mapID");
         }
-        $postFields = array(
-            'ID',
-            'title'  => 'post_title',
-            'url'    => 'guid',
-            'status' => 'post_status',
-            'type'   => 'post_type'
-        );
-        $metaKeys = array(
-            'wpmap_on_map' => $mapID,
-            'wpmap_latlng',
-        );
-        // @todo allow those who can see private or drafs to get those posts ?
-        $conditions = array(
-            WpMap_PostQuery::POST_COLUMN_POST_STATUS => array(
-                WpMap_PostQuery::POST_STATUS_PUBLISHED,
-                // @todo remove those after dev:
-                WpMap_PostQuery::POST_STATUS_DRAFT,
-                WpMap_PostQuery::POST_STATUS_PRIVATE
-            ),
-            WpMap_PostQuery::POST_COLUMN_POST_TYPE => array(
-                WpMap_PostQuery::POST_TYPE_PAGE,
-                WpMap_PostQuery::POST_TYPE_POST,
-            )
-        );
-        global $wpdb;
-        $query = new WpMap_PostQuery($wpdb);
-        $posts = $query
-            ->select($postFields)
-            ->withMeta($metaKeys)
-            ->where($conditions)
-            ->all();
+        $posts = WpMap_Data::getInstance()->posts($mapID, $drafts = true);
         return $this->postsToFeatureCollection($posts);
     }
 

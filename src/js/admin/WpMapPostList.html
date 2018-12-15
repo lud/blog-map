@@ -20,7 +20,7 @@
             <!-- <td>{JSON.stringify(post.meta.wpmap_visibilities)}</td> -->
             <td>
                 <ToggleSwitch
-                    checked="{onCurrentMap(post)}"
+                    checked="{post.layer.visible}"
                     on="{WPMAP_VIS_ONMAP}"
                     off="{WPMAP_VIS_NOTONMAP}"
                     on:change="$actTogglePostVisibilities(post._id, event)"/>
@@ -60,19 +60,15 @@ export default {
         }
     },
     components: { ToggleSwitch, CountryPicker, Geocoder },
-    computed: {
-        onCurrentMap: ({ $mapID }) => post => {
-            return post.meta.wpmap_visibilities[$mapID] === WPMAP_VIS_ONMAP
-        },
-        postMapStatus: ({ onCurrentMap }) => post => {
+    helpers: {
+        postMapStatus: post => {
             // show if a post is ok to be on the map. If the post is set to
             // be on the map, the only thing required is coordinates
             // If not on the map, we return default status (with no style)
-            return  onCurrentMap(post)
-                ? Array.isArray(post.meta.wpmap_latlng)
-                    ? 'ok'
-                    : 'error'
-                : 'none'
+            if (post.layer.visible) {
+                return Array.isArray(post.meta.wpmap_latlng) ? 'ok' : 'error'
+            }
+            return 'none';
         }
     }
 }

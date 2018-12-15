@@ -4,33 +4,12 @@ defined('ABSPATH') or exit();
 
 class WpMap_AdminPage {
 
-    private $defaultQueryPostFields;
-    private $defaultQueryMetaKeys;
-
     public function __construct()
     {
-        // This should be class constants but as we want to store arrays, and as
-        // worpress wants to be as retrocompatible as possible, we use
-        // properties. @todo check minimum PHP version for all features
-        $this->defaultQueryPostFields = array(
-            'ID',
-            'title'  => 'post_title',
-            'url'    => 'guid',
-            'status' => 'post_status',
-            'type'   => 'post_type'
-        );
-        $this->defaultQueryMetaKeys = array(
-            'wpmap_visibilities',
-            'wpmap_latlng',
-            'wpmap_geocoded',
-            'wpmap_country_alpha2'
-        );
     }
 
     public static function render()
     {
-        // Before loading the admin panel, we will migrate the plugin to the
-        // latest code.
         $req = WpMap_Request::getInstance();
         if ($req->find('rollback') === 'true')
         {
@@ -47,27 +26,9 @@ class WpMap_AdminPage {
         wp_enqueue_style('wpmap_admin_bundle_css');
         echo "\n".'<div id="wpmap-admin-app"></div>';
     }
-
-    private function queryPosts(array $postFields = null, array $metaKeys = null, array $conditions = array())
-    {
-        global $wpdb;
-        if (null === $postFields) { $postFields = $this->defaultQueryPostFields; }
-        if (null === $metaKeys) { $metaKeys = $this->defaultQueryMetaKeys; }
-        $query = new WpMap_PostQuery($wpdb);
-        return $query
-            ->select($postFields)
-            ->withMeta($metaKeys)
-            ->where($conditions)
-            ->all();
-    }
-
     private function getPostById($id)
     {
-        $posts = $this->queryPosts(null, null, array('ID' => $id));
-        if (!count($posts) === 1) {
-            trigger_error('@todo');
-        }
-        return reset($posts);
+        throw new \Exception("@todo");
     }
 
     public static function ajaxRoutes()
@@ -80,19 +41,13 @@ class WpMap_AdminPage {
         );
     }
 
-    public function getAdminPosts()
+    public function getAdminPosts($input)
     {
-        return $this->queryPosts(null, null, array(
-            WpMap_PostQuery::POST_COLUMN_POST_STATUS => array(
-                WpMap_PostQuery::POST_STATUS_PUBLISHED,
-                WpMap_PostQuery::POST_STATUS_DRAFT,
-                WpMap_PostQuery::POST_STATUS_PRIVATE
-            ),
-            WpMap_PostQuery::POST_COLUMN_POST_TYPE => array(
-                WpMap_PostQuery::POST_TYPE_PAGE,
-                WpMap_PostQuery::POST_TYPE_POST,
-            )
-        ));
+        $mapID = $input['mapID'];
+        if (!$mapID || !WpMap_AdminPage::isValidMapKey($mapID)) {
+            throw new WpMap_ApiError(400, "Invalid mapID $mapID");
+        }
+        return WpMap_Data::getInstance()->posts($mapID, $drafts = true);
     }
 
     public function getMapsConfig()
@@ -118,31 +73,31 @@ class WpMap_AdminPage {
         $changesetMeta = isset($changeset['meta'])
             ? $changeset['meta']
             : array();
-
+        $changesetPostLayerconf = isset($changeset['layer'])
+            ? $changeset['layer']
+            : array();
         // -- Meta --
 
         // first loop to validate all
         foreach ($changesetMeta as $key => $value) {
             self::validateInputMeta($key, $value);
         }
+        foreach ($changesetPostLayerconf as $key => $value) {
+            self::validateInputPostLayerconf($key, $value);
+        }
 
         // then save all
+
         foreach ($changesetMeta as $key => $value) {
-            $serialized = WpMap_PostQuery::serializePostMeta($key, $value);
+            $serialized = WpMap_Data::serializePostMeta($key, $value);
             update_post_meta($postID, $key, $serialized);
-            // For some meta keys we want to have additional behaviour
-            switch ($key) {
-                case 'wpmap_visibilities':
-                    // wpmap_on_map is a "bag" meta to query all posts for a map
-                    delete_post_meta($postID, 'wpmap_on_map');
-                    foreach ($value as $map => $isVisible) {
-                        if ($isVisible === WPMAP_VIS_ONMAP) {
-                            update_post_meta($postID, 'wpmap_on_map', $map);
-                        }
-                    }
-                    break;
-            }
         }
+
+        foreach ($changesetPostLayerconf as $key => $value) {
+            $serialized = WpMap_Data::serializePostLayerconfValue($key, $value);
+            update_post_meta($postID, $key, $serialized);
+        }
+
         return $this->getPostById($postID);
     }
 
@@ -151,7 +106,7 @@ class WpMap_AdminPage {
 
         $mapID = $payload['mapID'];
         $changeset = $payload['changeset'];
-        $db = WpMap_Data::create();
+        $db = WpMap_Data::getInstance();
         if (! $map = $db->findMap($mapID)) {
             wp_die('@todo 404');
         }
@@ -169,7 +124,7 @@ class WpMap_AdminPage {
 
     private static function validateInputMeta($key, $value) {
         switch ($key) {
-            case 'wpmap_visibilities':
+            case 'OFF_wpmap_visibilities':
                 if (!is_array($value)) {
                     throw new \Exception("Visibilities must be an array");
                 }

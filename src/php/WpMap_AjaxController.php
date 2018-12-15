@@ -46,11 +46,12 @@ class WpMap_AjaxController {
         }
         $controller = new $controllerClass();
         try {
-            header('Content-Type: application/vnd.api+json');
             $response = $this->callAction($controller, $controllerMethod, $requestMethod);
             if (is_array($response) || is_object($response) || is_string($response)) {
+                header('Content-Type: application/vnd.api+json');
                 echo json_encode(array('data' => $response));
             } elseif (null === $response) {
+                header('Content-Type: application/vnd.api+json');
                 echo json_encode(['data' => 'ok']);
             } else {
                 $returned = WP_DEBUG
@@ -75,9 +76,15 @@ class WpMap_AjaxController {
     public static function handleAjaxException($e)
     {
         if ($e instanceof WpMap_ApiError) {
+            header('Content-Type: application/vnd.api+json');
             api_send_errors($e->statusCode(), $e);
         } else {
-            api_send_errors(500, '(unhandled) ' . $e->getMessage());
+            if (strpos($_SERVER['HTTP_ACCEPT'], 'json')) {
+                header('Content-Type: application/vnd.api+json');
+                api_send_errors(500, '(unhandled) ' . $e->getMessage());
+            } else {
+                throw $e;
+            }
         }
         return true;
     }
