@@ -39,6 +39,11 @@ class WpMap_Serializer
         return $value;
     }
 
+    public static function serializePostLayerConfValue($key, $value)
+    {
+        return $value;
+    }
+
     public static function unserializePostMeta($key, $value)
     {
         switch ($key) {
@@ -53,6 +58,15 @@ class WpMap_Serializer
     {
         switch ($column) {
             case 'ID':
+                return intval($value);
+        }
+        return $value;
+    }
+
+    public static function unserializePostLayerConf($key, $value)
+    {
+        switch ($key) {
+            case 'visible':
                 return intval($value);
         }
         return $value;

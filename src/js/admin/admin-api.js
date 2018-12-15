@@ -8,10 +8,19 @@ export function getMapsConfig() {
   return wpajax.get('getMapsConfig')
 }
 
-export function patchPost(postID, changeset) {
+export function patchPostMeta(postID, changeset) {
   return wpajax
-    .patch('patchPost', {
+    .patch('patchPostMeta', {
       postID,
+      changeset
+    })
+}
+
+export function patchPostLayer(postID, mapID, changeset) {
+  return wpajax
+    .patch('patchPostLayer', {
+      postID,
+      mapID,
       changeset
     })
 }

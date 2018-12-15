@@ -4,7 +4,8 @@ import {
 import {
   getMapsConfig,
   getPostsConfig,
-  patchPost as _patchPost,
+  patchPostLayer as _patchPostLayer,
+  patchPostMeta as _patchPostMeta,
   patchMap
 } from './admin-api'
 import * as list from '../helpers/list.js'
@@ -94,18 +95,36 @@ class Store extends BaseStore {
   }
 
   setFetchedPost(post, opts = {}) {
-    let { rawPosts, mapID } = this.get()
-    rawPosts = list.keyReplace(rawPosts, PID, post._id, post)
+    return this.updateRawPost(post._id, () => post, opts)
+  }
+
+  updateRawPost(postID, fn, opts = {}) {
+    const rawPosts = list.keyUpdate(this.get().rawPosts, PID, postID, fn)
     this.set({ rawPosts })
     if (opts.refresh) {
       this.refreshMap()
     }
   }
 
-  patchPost(post, changeset, opts = {refresh: true}) {
-    console.log('get id', post)
-    _patchPost(post.id, changeset).then(
-      newPost => this.setFetchedPost(newPost, opts),
+  resetPostLayerConf(postID, layer, opts = {}) {
+    return this.updateRawPost(postID, post => Object.assign({}, post, {layer}), opts)
+  }
+
+  resetPostMeta(postID, meta, opts = {}) {
+    return this.updateRawPost(postID, post => Object.assign({}, post, {meta}), opts)
+  }
+
+  patchPostLayer(post, mapID, changeset, opts = {refresh: true}) {
+    _patchPostLayer(post._id, mapID, changeset).then(
+      newLayer => this.resetPostLayerConf(post._id, newLayer, opts),
+      err => this.setFetchedPost(post)
+    )
+  }
+
+  patchPostMeta(post, changeset, opts = {refresh: true}) {
+    console.log('get id', post._id)
+    _patchPostMeta(post._id, changeset).then(
+      newMeta => this.resetPostMeta(post._id, newMeta, opts),
       err => this.setFetchedPost(post)
     )
   }
@@ -116,14 +135,11 @@ class Store extends BaseStore {
     // update fails, we must revert the current post to its server
     // side state
     const post = this.getPost(postID)
-    const newVisibilities = Object.assign({}, post.meta.wpmap_visibilities, {
-        [this.get().mapID]: visibility
+    const { mapID } = this.get()
+    const newLayer = Object.assign({}, post.layer, {
+        visible: visibility
     })
-    this.patchPost(post, {
-      meta: {
-          wpmap_visibilities: newVisibilities
-      }
-    })
+    this.patchPostLayer(post, mapID, newLayer)
   }
 
   actSetPostCountryCode(postID, alpha2) {
@@ -131,10 +147,8 @@ class Store extends BaseStore {
     const clone = JSON.parse(JSON.stringify(post))
     clone.meta.wpmap_country_alpha2 = alpha2
     this.setFetchedPost(clone)
-    patchPost(post, {
-      meta: {
-          wpmap_country_alpha2: alpha2
-      }
+    this.patchPostMeta(post, {
+        wpmap_country_alpha2: alpha2
     })
   }
 
@@ -142,11 +156,9 @@ class Store extends BaseStore {
     const latlng = [lat, lon]
     const post = this.getPost(postID)
 
-    patchPost(post, {
-      meta: {
-        wpmap_geocoded: geocoded,
-        wpmap_latlng: latlng,
-      }
+    this.patchPostMeta(post, {
+      wpmap_geocoded: geocoded,
+      wpmap_latlng: latlng,
     })
   }
 

@@ -28,7 +28,7 @@ class WpMap_AdminPage {
     }
     private function getPostById($id)
     {
-        throw new \Exception("@todo");
+        throw new \Exception("@todo get post by id");
     }
 
     public static function ajaxRoutes()
@@ -36,7 +36,8 @@ class WpMap_AdminPage {
         return array(
             'getPostsConfig' => array('GET', array('WpMap_AdminPage', 'getAdminPosts')),
             'getMapsConfig' => array('GET', array('WpMap_AdminPage', 'getMapsConfig')),
-            'patchPost' => array('PATCH', array('WpMap_AdminPage', 'patchPost')),
+            'patchPostLayer' => array('PATCH', array('WpMap_AdminPage', 'patchPostLayer')),
+            'patchPostMeta' => array('PATCH', array('WpMap_AdminPage', 'patchPostMeta')),
             'patchMap' => array('PATCH', array('WpMap_AdminPage', 'patchMap')),
         );
     }
@@ -61,55 +62,74 @@ class WpMap_AdminPage {
         return $rs;
     }
 
-    public function patchPost($payload)
+    public function patchPostLayer($payload)
     {
-        if (!isset($payload['postID'])
-         || !is_integer($payload['postID'])
-         || ! get_post($payload['postID'])) {
-            wp_die('@todo 404');
-        }
+        $mapID = $payload['mapID'];
         $postID = $payload['postID'];
         $changeset = $payload['changeset'];
-        $changesetMeta = isset($changeset['meta'])
-            ? $changeset['meta']
-            : array();
-        $changesetPostLayerconf = isset($changeset['layer'])
-            ? $changeset['layer']
-            : array();
-        // -- Meta --
+        self::ensureMapExists($mapID);
+        self::ensurePostExists($payload['postID']);
 
-        // first loop to validate all
-        foreach ($changesetMeta as $key => $value) {
-            self::validateInputMeta($key, $value);
-        }
-        foreach ($changesetPostLayerconf as $key => $value) {
+        foreach ($changeset as $key => $value) {
             self::validateInputPostLayerconf($key, $value);
         }
-
-        // then save all
-
-        foreach ($changesetMeta as $key => $value) {
-            $serialized = WpMap_Data::serializePostMeta($key, $value);
-            update_post_meta($postID, $key, $serialized);
+        $db = WpMap_Data::getInstance();
+        foreach ($changeset as $key => $value) {
+            $serialized = WpMap_Serializer::serializePostLayerConfValue($key, $value);
+            $db->updatePostLayerConf($postID, $mapID, $key, $value);
         }
-
-        foreach ($changesetPostLayerconf as $key => $value) {
-            $serialized = WpMap_Data::serializePostLayerconfValue($key, $value);
-            update_post_meta($postID, $key, $serialized);
-        }
-
-        return $this->getPostById($postID);
+        return WpMap_Data::getInstance()->postLayer($postID, $mapID);
     }
 
-    public function patchMap($payload)
+    public function patchPostMeta($payload)
     {
-
-        $mapID = $payload['mapID'];
+        $postID = $payload['postID'];
         $changeset = $payload['changeset'];
+        self::ensurePostExists($payload['postID']);
+
+        $postID = $payload['postID'];
+        $changeset = $payload['changeset'];
+
+        // first loop to validate all
+        foreach ($changeset as $key => $value) {
+            self::validateInputMeta($key, $value);
+        }
+
+        foreach ($changeset as $key => $value) {
+            $serialized = WpMap_Serializer::serializePostMeta($key, $value);
+            update_post_meta($postID, $key, $serialized);
+            switch ($key) {
+                case 'wpmap_country_alpha2':
+                    delete_post_meta($postID, 'wpmap_geocoded');
+                    delete_post_meta($postID, 'wpmap_latlng');
+                break;
+            }
+        }
+
+        return WpMap_Data::getInstance()->postMeta($postID);
+    }
+
+    private function ensureMapExists($mapID)
+    {
         $db = WpMap_Data::getInstance();
         if (! $map = $db->findMap($mapID)) {
             wp_die('@todo 404');
         }
+    }
+
+    private function ensurePostExists($postID)
+    {
+        $db = WpMap_Data::getInstance();
+        if (false === (!!get_post($postID))) {
+            wp_die('@todo 404');
+        }
+    }
+
+    public function patchMap($payload)
+    {
+        $mapID = $payload['mapID'];
+        static::ensureMapExists($mapID);
+        $changeset = $payload['changeset'];
         foreach ($changeset as $key => &$value) {
             $value = WpMap_Data::serializeMapColumnValue($key, $value);
         }
@@ -150,6 +170,20 @@ class WpMap_AdminPage {
                 return true;
         }
         throw new WpMap_ApiError(400, "Unauthorized meta key $key");
+    }
+
+    private static function validateInputPostLayerconf($key, $value) {
+        switch ($key) {
+            case 'visible':
+                if (! is_integer($value)) {
+                    throw new \Exception("Visibilities must be integers");
+                } else {
+                    return true;
+                }
+            case 'icon':
+                return true;
+        }
+        throw new WpMap_ApiError(400, "Unauthorized layer key $key");
     }
 
     public static function isValidMapKey($key)

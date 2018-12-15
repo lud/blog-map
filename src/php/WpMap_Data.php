@@ -67,6 +67,23 @@ class WpMap_Data {
             ->findOne();
     }
 
+    public function postLayer($postID, $mapID)
+    {
+        $sql = <<<'SQL'
+            SELECT lc.icon as "icon",
+                   lc.visible as "visible"
+            FROM {POSTS_LAYERCONF_TABLE_NAME} lc
+            WHERE lc.post_id = :post_id AND lc.map_id = :map_id
+SQL;
+        $layer = $this
+            ->runQuery($sql, array(
+                ':post_id' => $postID,
+                ':map_id' => $mapID
+            ))
+            ->findOne();
+        return $this->fetchLayerKeys($layer, array('icon', 'visible'));
+    }
+
     public function posts($mapID, $drafts = false)
     {
         $sql = <<<'SQL'
@@ -82,25 +99,87 @@ class WpMap_Data {
                    m2.meta_value as "wpmap_country_alpha2",
                    m3.meta_value as "wpmap_geocoded"
             FROM {POSTS_TABLE_NAME} p
-            LEFT JOIN {POSTS_LAYERCONF_TABLE_NAME} lc ON p.ID = lc.post_id AND lc.map_id = :mapid
+            LEFT JOIN {POSTS_LAYERCONF_TABLE_NAME} lc ON p.ID = lc.post_id AND lc.map_id = :map_id
             LEFT JOIN {META_TABLE_NAME} m1 ON p.ID = m1.post_id AND m1.meta_key = 'wpmap_latlng'
             LEFT JOIN {META_TABLE_NAME} m2 ON p.ID = m2.post_id AND m2.meta_key = 'wpmap_country_alpha2'
             LEFT JOIN {META_TABLE_NAME} m3 ON p.ID = m3.post_id AND m3.meta_key = 'wpmap_geocoded'
 SQL;
+        return $this->runPostQuery($sql, array(':map_id' => $mapID));
+    }
 
+    public function postMeta($postID)
+    {
+        $sql = <<<'SQL'
+            SELECT m1.meta_value as "wpmap_latlng",
+                   m2.meta_value as "wpmap_country_alpha2",
+                   m3.meta_value as "wpmap_geocoded"
+            FROM {POSTS_TABLE_NAME} p
+            LEFT JOIN {META_TABLE_NAME} m1 ON p.ID = m1.post_id AND m1.meta_key = 'wpmap_latlng'
+            LEFT JOIN {META_TABLE_NAME} m2 ON p.ID = m2.post_id AND m2.meta_key = 'wpmap_country_alpha2'
+            LEFT JOIN {META_TABLE_NAME} m3 ON p.ID = m3.post_id AND m3.meta_key = 'wpmap_geocoded'
+            WHERE p.ID = :post_id
+SQL;
+        $layer = $this
+            ->runQuery($sql, array(':post_id' => $postID))
+            ->findOne();
+        return $this->fetchMetaKeys($layer, array('wpmap_latlng', 'wpmap_country_alpha2', 'wpmap_geocoded'));
+    }
+
+    public function updatePostLayerConf($postID, $mapID, $key, $value)
+    {
+        $sql = <<<'SQL'
+            INSERT INTO {POSTS_LAYERCONF_TABLE_NAME}
+                (post_id, map_id, {CONF_KEY})
+            VALUES
+                (:post_id, :map_id, :conf_value)
+            ON DUPLICATE KEY UPDATE
+                {CONF_KEY} = :conf_value
+
+SQL;
+        $sql = str_replace('{POSTS_LAYERCONF_TABLE_NAME}', $this->tprefix(self::POSTS_LAYERCONF_TABLE_NAME), $sql);
+        $sql = str_replace('{CONF_KEY}', $key, $sql);
+
+        $query = $this
+            ->forTable(self::POSTS_LAYERCONF_TABLE_NAME)
+            ->raw_execute($sql, array(
+                ':map_id' => $mapID,
+                ':post_id' => $postID,
+                ':conf_value' => $value,
+            ), $this->connectionName);
+            return $query;
+    }
+
+    // ------------------
+
+    private function setQueryEnv($sql)
+    {
         $sql = str_replace('{POST_KEY}', self::POST_KEY, $sql);
         $sql = str_replace('{POSTS_TABLE_NAME}', $this->tprefix(self::POSTS_TABLE_NAME), $sql);
         $sql = str_replace('{META_TABLE_NAME}', $this->tprefix(self::META_TABLE_NAME), $sql);
         $sql = str_replace('{POSTS_LAYERCONF_TABLE_NAME}', $this->tprefix(self::POSTS_LAYERCONF_TABLE_NAME), $sql);
+        return $sql;
+    }
+
+    private function runQuery($sql, $queryParams)
+    {
+        $sql = $this->setQueryEnv($sql);
+        $query = $this
+            ->forTable('__IGNORE__')
+            ->raw_query($sql, $queryParams);
+        return $query;
+    }
+
+    private function runPostQuery($sql, $queryParams)
+    {
+
+        $query = $this
+            ->runQuery($sql, $queryParams)
+            ->findMany();
 
         $propKeys = array('ID', 'title', 'url', 'status', 'type');
         $metaKeys = array('wpmap_latlng', 'wpmap_country_alpha2', 'wpmap_geocoded');
         $layerKeys = array('icon', 'visible');
 
-        $query = $this
-            ->forTable(self::POSTS_TABLE_NAME)
-            ->raw_query($sql, array(':mapid' => $mapID));
-        $query = $query->findMany();
         $records = array();
         foreach ($query as $item) {
             $records[] = static::expandRecord($item, $propKeys, $metaKeys, $layerKeys);
@@ -108,28 +187,44 @@ SQL;
         return $records;
     }
 
-    // ------------------
+
 
     private function expandRecord(ORM $record, $propKeys, $metaKeys, $layerKeys)
     {
-        $props = new stdClass;
-        $meta = new stdClass;
-        $layer = new stdClass;
-        foreach ($propKeys as $column) {
-            $props->$column = WpMap_Serializer::unserializePostColumn($column, $record->$column);
-        }
-        foreach ($metaKeys as $mkey) {
-            $meta->$mkey = WpMap_Serializer::unserializePostMeta($mkey, $record->$mkey);
-        }
-        foreach ($layerKeys as $lkey) {
-            $layer->$lkey = $record->$lkey;
-        }
+        $props = $this->fetchPropKeys($record, $propKeys);
+        $meta = $this->fetchMetaKeys($record, $metaKeys);
+        $layer = $this->fetchLayerKeys($record, $layerKeys);
+
         return (object) array(
             self::POST_KEY => intval($record->{self::POST_KEY}),
             'props' => $props,
             'layer' => $layer,
             'meta' => $meta
         );
+    }
+
+    private function fetchPropKeys($record, $keys) {
+        $result = new stdClass;
+        foreach ($keys as $key) {
+            $result->$key = WpMap_Serializer::unserializePostColumn($key, $record->$key);
+        }
+        return $result;
+    }
+
+    private function fetchMetaKeys($record, $keys) {
+        $result = new stdClass;
+        foreach ($keys as $key) {
+            $result->$key = WpMap_Serializer::unserializePostMeta($key, $record->$key);
+        }
+        return $result;
+    }
+
+    private function fetchLayerKeys($record, $keys) {
+        $result = new stdClass;
+        foreach ($keys as $key) {
+            $result->$key = WpMap_Serializer::unserializePostLayerConf($key, $record->$key);
+        }
+        return $result;
     }
 
     private function forTable($table)

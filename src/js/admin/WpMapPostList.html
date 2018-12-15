@@ -19,6 +19,8 @@
             <td>{post.props.status}</td>
             <!-- <td>{JSON.stringify(post.meta.wpmap_visibilities)}</td> -->
             <td>
+                {JSON.stringify(post.layer)}
+
                 <ToggleSwitch
                     checked="{post.layer.visible}"
                     on="{WPMAP_VIS_ONMAP}"
