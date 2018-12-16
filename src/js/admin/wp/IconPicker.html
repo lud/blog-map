@@ -1,0 +1,66 @@
+{#if editing}
+  <input
+    ref:locationInput
+    value={editingValue}
+    placeholder={value}
+    on:blur="endEditMode(false)"
+    list="fa-icons-data"
+    size="5"
+    on:keyup="onInput(this.value, event, false)"
+    on:change="onInput(this.value, event, true)">
+{/if}
+<span on:click="startEditMode()">
+  <i class="fa fa-{liveValue}"></i>
+</span>
+
+<script>
+export default {
+  data() {
+    return {
+      value: null,
+      editingValue: null,
+      editing: false,
+    }
+  },
+  computed: {
+    liveValue: ({editing, editingValue, value}) => {
+    	return editing ? (editingValue || value) : value
+    },
+  },
+	onstate({ changed, current, previous }) {
+    console.log(JSON.stringify(current))
+		if (changed.value) {
+    	this.fire('change', current.value)
+		}
+	},
+  methods: {
+    onInput(value, evt, doCommit) {
+      console.log('evt', evt)
+      this.set({ editingValue: value })
+      if (doCommit) {
+				this.endEditMode(true)
+      }
+    },
+    startEditMode() {
+    	this.set({ editing: true, editingValue: null })
+    	this.refs.locationInput.focus()
+    },
+    endEditMode(commitValue) {
+    	if (this.get().editing) {
+	    	this.set({ editing: false })
+	    	if (commitValue) {
+	    		const { editingValue } = this.get()
+	    		this.set({ value: editingValue })
+	    	}
+    	}
+    }
+  }
+}
+</script>
+
+<style>
+
+i {
+  font-size: 18px;
+}
+</style>

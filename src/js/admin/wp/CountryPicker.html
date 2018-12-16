@@ -3,13 +3,16 @@
     <input ref:locationInput
       on:blur="endEditMode(false)"
       list="country-names-data"
+      size="10"
       name="countryAlpha2"
       placeholder="{countryName}"
       on:keyup="onNameInput(this.value)"
       on:change="onNameInput(this.value, true)">
-  	<span class="map-status-bg">{statusText}</span>
+    <span class="map-status-bg">{statusText}</span>
   {:else}
-    <span on:click="startEditMode()" class="status-bg">{countryName} [{value || '?'}]</span>
+    <span on:click="startEditMode()" class="country-flag status-bg" style="background-image: url(http://www.geognos.com/api/en/countries/flag/{value}.png)">
+      {countryName} [{value || '?'}]
+    </span>
   {/if}
 </span>
 
@@ -91,5 +94,12 @@ export default {
   }
   .alpha2-status.status-success input {
     box-shadow:inset 0 0 5px 5px #cfc;
+  }
+  .country-flag {
+    padding-left: 20px;
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: 16px 12px;
+    display: inline-block;
   }
 </style>

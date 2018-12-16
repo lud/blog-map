@@ -1,0 +1,18 @@
+<datalist id="fa-icons-data">
+    {#each icons as icon}
+      <option>{icon}</option>
+    {/each}
+</datalist>
+
+<script>
+
+import icons from '../../helpers/all-icons'
+
+export default {
+    data() {
+        return {
+          icons
+        }
+    }
+}
+</script>

@@ -182,12 +182,13 @@ class WpMap_Migration {
     {
         $table = WpMap_Data::postsLayerconfTableName($wpdb);
         $charset_collate = $wpdb->get_charset_collate();
+        $defaultIcon = WpMap_Data::DEFAULT_ICON;
 
         $sqlCreate = "CREATE TABLE $table (
           post_id BIGINT(20) NOT NULL,
           map_id VARCHAR(32) NOT NULL,
           visible BOOLEAN NOT NULL DEFAULT 0,
-          icon VARCHAR(32) NOT NULL DEFAULT 'circle',
+          icon VARCHAR(32) NOT NULL DEFAULT '$defaultIcon',
           PRIMARY KEY  (post_id, map_id)
         ) $charset_collate;";
 

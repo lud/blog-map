@@ -101,7 +101,7 @@
         const groupLayer = L.geoJson(collection, {
             pointToLayer: function(feat, latlng) {
               const icon = new VectorIcon({
-                icon: feat.properties.icon || 'circle',
+                icon: feat.properties.icon,
                 iconSize,
                 iconAnchor,
                 mapPin,
@@ -151,6 +151,7 @@
         } else {
           // No features
           map.meta('features', null)
+          map.fitWorld()
           return
         }
 

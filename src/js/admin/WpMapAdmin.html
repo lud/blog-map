@@ -4,6 +4,7 @@
         <LoadingSpinner/>
     {:then _}
         <CountriesDatalist/>
+        <IconsDatalist/>
         <h1>Blog Map Configuration</h1>
         Icones : <a href="https://fontawesome.com/icons?d=gallery">Font Awesome</a>
         <div class="wpmap-gui-columns">
@@ -42,6 +43,7 @@
 import WpMapPostList from './WpMapPostList.html'
 import LoadingSpinner from './wp/LoadingSpinner.html'
 import CountriesDatalist from './wp/CountriesDatalist.html'
+import IconsDatalist from './wp/IconsDatalist.html'
 import PinDesigner from './wp/PinDesigner.html'
 import WpMap from './../client/WpMap.html'
 
@@ -50,6 +52,7 @@ export default {
     WpMapPostList,
     LoadingSpinner,
     CountriesDatalist,
+    IconsDatalist,
     WpMap,
     PinDesigner
   },
@@ -71,7 +74,9 @@ export default {
     justify-content: space-between;
   }
   .wpmap-gui-column {
-    width: 48%;
-    padding: 0; margin: 0;
+    width: 50%;
+    box-sizing: border-box;
+    padding-right: 1em;
+    margin: 0;
   }
 </style>

@@ -1,7 +1,8 @@
-<div style="display: inline">
+<span style="display: inline">
   {#if countryAlpha2}
     <input ref:geoinput
       type="text"
+      size="10"
       name="wpmap-geocoder"
       placeholder="{defaultDisplay}"
       on:input="handleInput(this.value)" />
@@ -29,7 +30,7 @@
   {:else}
     <abbr title="A country code is required">?</abbr>
   {/if}
-</div>
+</span>
 
 <script>
 import debounce from 'lodash/debounce'

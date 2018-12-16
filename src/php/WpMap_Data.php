@@ -5,6 +5,7 @@ defined('ABSPATH') or exit();
 class WpMap_Data {
 
     const MAPS_TABLE_NAME = 'wpmap_maps';
+    const DEFAULT_ICON = 'star';
     const META_TABLE_NAME = 'postmeta';
     const POSTS_TABLE_NAME = 'posts';
     const META_COLUMN_KEY = 'meta_key';
@@ -127,6 +128,7 @@ SQL;
             LEFT JOIN {META_TABLE_NAME} m1 ON p.ID = m1.post_id AND m1.meta_key = 'wpmap_latlng'
             LEFT JOIN {META_TABLE_NAME} m2 ON p.ID = m2.post_id AND m2.meta_key = 'wpmap_country_alpha2'
             LEFT JOIN {META_TABLE_NAME} m3 ON p.ID = m3.post_id AND m3.meta_key = 'wpmap_geocoded'
+            WHERE p.post_status = 'publish'
 SQL;
         return $this->runPostQuery($sql, array(':map_id' => $mapID));
     }
@@ -258,7 +260,7 @@ SQL;
     {
         switch ($key) {
             case 'icon':
-                return 'circle';
+                return self::DEFAULT_ICON;
             case 'visible':
                 return 0;
             default:
