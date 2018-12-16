@@ -1,4 +1,4 @@
-<div class="alpha2-status {statusClass}">
+<span class="alpha2-status {statusClass}">
   {#if editing}
     <input ref:locationInput
       on:blur="endEditMode(false)"
@@ -11,7 +11,7 @@
   {:else}
     <span on:click="startEditMode()" class="status-bg">{countryName} [{value || '?'}]</span>
   {/if}
-</div>
+</span>
 
 <script>
 import { countries } from 'country-data'

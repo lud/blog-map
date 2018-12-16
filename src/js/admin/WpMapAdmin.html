@@ -3,17 +3,35 @@
         Loading ...
         <LoadingSpinner/>
     {:then _}
-        <p>{$mapConfig.name} <code>{$mapID}</code></p>
-        {#if $posts.length === 0}
-            <p>No post available</p>
-        {:else}
-            <WpMapPostList/>
-        {/if}
         <CountriesDatalist/>
+        <h1>Blog Map Configuration</h1>
+        Icones : <a href="https://fontawesome.com/icons?d=gallery">Font Awesome</a>
+        <div class="wpmap-gui-columns">
+          <div class="wpmap-gui-column">
+            <nav class="wpmap-gui-tab-headers">
+              <a href="#wpmap-tab-posts">Posts</a>
+              <a href="#wpmap-tab-design">Design</a>
+            </nav>
+            <div class="wpmap-gui-tabs">
+              <div class="wpmap-gui-tab" id="wpmap-tab-posts">
+                <h2>Posts & Pages</h2>
+                {#if $posts.length === 0}
+                    <p>No post available</p>
+                {:else}
+                    <WpMapPostList/>
+                {/if}
+              </div>
+              <div class="wpmap-gui-tab" id="wpmap-tab-design">
+                <h2>Pin design</h2>
+                <PinDesigner on:change="$actSetPinConfig(event)" height={$mapConfig.pin_config.height} radius={$mapConfig.pin_config.radius} fillColor={$mapConfig.pin_config.fillColor} strokeColor={$mapConfig.pin_config.strokeColor} />
+              </div>
+            </div>
+          </div>
+          <div class="wpmap-gui-column">
+            <WpMap ref:map mapID={$mapID} config={$mapConfig}/>
+          </div>
+        </div>
         <!-- <pre>{JSON.stringify($mapConfig, 0, '  ')}</pre> -->
-
-        <WpMap ref:map mapID={$mapID} config={$mapConfig}/>
-        <PinDesigner on:change="$actSetPinConfig(event)" height={$mapConfig.pin_config.height} radius={$mapConfig.pin_config.radius} fillColor={$mapConfig.pin_config.fillColor} strokeColor={$mapConfig.pin_config.strokeColor} />
     {:catch error}
         NotLoaded !
         <p class="error">Error loading plugin</p>
@@ -42,3 +60,18 @@ export default {
   }
 }
 </script>
+
+<style>
+  .wpmap-gui-columns {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    padding: 0; margin: 0;
+    justify-content: space-between;
+  }
+  .wpmap-gui-column {
+    width: 48%;
+    padding: 0; margin: 0;
+  }
+</style>

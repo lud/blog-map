@@ -1,0 +1,45 @@
+<label class="switch {classChecked}">
+  <input type="checkbox" checked={checked} on:change="changedValue(event)">
+  <i class="fa fa-{icon}"></i>
+</label>
+
+<script>
+    export default {
+        data() {
+            return {
+                checked: false,
+                on: true,
+                off: false
+            }
+        },
+        computed: {
+          icon: ({ checked }) => checked ? 'eye' : 'eye-slash',
+          classChecked: ({ checked }) => checked ? 'switch-on' : 'switch-off',
+        },
+        methods: {
+            changedValue(evt) {
+                const checked = evt.target.checked
+                const k = checked ? 'on' : 'off'
+                const value = this.get()[k]
+                this.fire('change', value)
+            }
+        }
+    }
+</script>
+
+<style>
+
+.switch input {
+  display:none;
+}
+
+.switch i {
+  font-size: 18px;
+}
+.switch-on i {
+  color: #077e94;
+}
+.switch-off i {
+  color: #666;
+}
+</style>

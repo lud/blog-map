@@ -1,58 +1,43 @@
 <div class="wpmap-admin-posts-list">
-    <table>
-    <tr>
-        <th>#</th>
-        <th>Title</th>
-        <th>Type</th>
-        <th>Status</th>
-        <!-- <th>Vis</th> -->
-        <th>Visible</th>
-        <th>Country</th>
-        <th>Location</th>
-        <th>LatLng</th>
-        <th>Icône</th>
-    </tr>
+  <ul>
     {#each $posts as post}
-        <tr class="wpmap-admin-posts-list-item map-status-{postMapStatus(post)}">
-
-            <td class="map-status-bg">{post._id}</td>
-            <td>{post.props.title}</td>
-            <td>{post.props.type}</td>
-            <td><span class="{postStatusClass(post.props.status)}">{post.props.status}</span></td>
-            <!-- <td>{JSON.stringify(post.meta.wpmap_visibilities)}</td> -->
-            <td>
-                <ToggleSwitch
-                    checked="{post.layer.visible}"
-                    on="{WPMAP_VIS_ONMAP}"
-                    off="{WPMAP_VIS_NOTONMAP}"
-                    on:change="$actTogglePostVisibilities(post._id, event)"/>
-            </td>
-            <td>
-                <CountryPicker
-                    value="{post.meta.wpmap_country_alpha2}"
-                    on:change="$actSetPostCountryCode(post._id, event)"/>
-            </td>
-            <td style="position:relative">
-                <Geocoder
-                    countryAlpha2={post.meta.wpmap_country_alpha2}
-                    defaultDisplay={post.meta.wpmap_geocoded}
-                    on:change="$actSetPostGeocoding(post._id, event)"/>
-            </td>
-            <td>{post.meta.wpmap_latlng}</td>
-            <td>
-                <input type="text"
+        <li class="map-status-{postMapStatus(post)}">
+            <h4 class="map-status-bg">
+                {#if post.props.type !== 'post'}
+                    <span>[{post.props.type}]</span>
+                {/if}
+                {post.props.title}
+            </h4>
+            <VisibilitySwitch
+                checked="{post.layer.visible}"
+                on="{WPMAP_VIS_ONMAP}"
+                off="{WPMAP_VIS_NOTONMAP}"
+                on:change="$actTogglePostVisibilities(post._id, event)"/>
+            <span class="{postStatusClass(post.props.status)}">{post.props.status}</span>
+            <CountryPicker
+                value="{post.meta.wpmap_country_alpha2}"
+                on:change="$actSetPostCountryCode(post._id, event)"/>
+            <Geocoder
+                countryAlpha2={post.meta.wpmap_country_alpha2}
+                defaultDisplay={post.meta.wpmap_geocoded}
+                on:change="$actSetPostGeocoding(post._id, event)"/>
+            <span>
+                <i class="fa fa-{post.layer.icon}"></i>
+                <input
+                    type="text"
+                    size="7"
                     value="{post.layer.icon}"
                     on:change="$actSetPostIcon(post._id, this.value)"/>
-            </td>
-            <td>{post.layer.icon}</td>
-        </tr>
+            </span>
+
+        </li>
     {/each}
-    </table>
+    </ul>
 </div>
 
 <script>
 
-import ToggleSwitch from './wp/ToggleSwitch.html'
+import VisibilitySwitch from './wp/VisibilitySwitch.html'
 import CountryPicker from './wp/CountryPicker.html'
 import Geocoder from './wp/Geocoder.html'
 
@@ -67,7 +52,7 @@ export default {
             WPMAP_VIS_NOTONMAP
         }
     },
-    components: { ToggleSwitch, CountryPicker, Geocoder },
+    components: { VisibilitySwitch, CountryPicker, Geocoder },
     helpers: {
         postMapStatus: post => {
             // show if a post is ok to be on the map. If the post is NOT set to
@@ -88,12 +73,8 @@ export default {
 </script>
 
 <style>
-    th {
-        text-align: left;
-    }
-    th:first-child, td:first-child {
-        text-align: right;
-        font-family: monospace;
+    h4 {
+        margin: 0;
     }
     .map-status-error .map-status-bg {
         background-color: #fcc;
@@ -103,5 +84,8 @@ export default {
     }
     .map-status-error .map-status-poststatus-error {
         background-color: #fcc;
+    }
+    .wpmap-admin-posts-list li {
+        margin-bottom: 1em;
     }
 </style>
