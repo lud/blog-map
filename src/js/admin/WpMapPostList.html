@@ -16,6 +16,7 @@
                     value="{post.meta.wpmap_country_alpha2}"
                     on:change="$actSetPostCountryCode(post._id, event)"/>
                 <Geocoder
+                    statusClass="{postLatLngStatus(post)}"
                     countryAlpha2={post.meta.wpmap_country_alpha2}
                     defaultDisplay={post.meta.wpmap_geocoded}
                     on:change="$actSetPostGeocoding(post._id, event)"/>
@@ -42,6 +43,10 @@ import Geocoder from './wp/Geocoder.html'
 const WPMAP_VIS_ONMAP = 1 // Show on map
 const WPMAP_VIS_NOTONMAP = 0 // Do not show on map
 
+function postHasLatLng(post) {
+    return post && post.meta && Array.isArray(post.meta.wpmap_latlng)
+}
+
 export default {
     immutable: true,
     data() {
@@ -56,14 +61,14 @@ export default {
             // show if a post is ok to be on the map. If the post is NOT set to
             // be on the map, we just reurn 'none'
             if (post.layer.visible) {
-                const isOK = Array.isArray(post.meta.wpmap_latlng)
+                const isOK = postHasLatLng(post)
                           && 'publish' === post.props.status
                 return isOK ? 'ok' : 'error'
             }
             return 'none';
         },
-        postStatusClass: status => {
-            return 'map-status-poststatus-' + ((status === 'publish') ? 'ok' : 'error')
+        postLatLngStatus: post => {
+            return 'map-status-latlng-' + (postHasLatLng(post) ? 'ok' : 'error')
         }
     }
 }
@@ -107,5 +112,8 @@ export default {
     }
     .wpmap-item-main-controls {
         padding: 0 1em;
+    }
+    :global(input[type=text].map-status-latlng-error) {
+        box-shadow: inset 0 0 4px 1px #b91e1e;
     }
 </style>

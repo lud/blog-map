@@ -6,15 +6,14 @@
         <CountriesDatalist/>
         <IconsDatalist/>
         <h1>Blog Map Configuration</h1>
-        Icones : <a href="https://fontawesome.com/icons?d=gallery">Font Awesome</a>
         <div class="wpmap-gui-columns">
           <div class="wpmap-gui-column">
             <nav class="wpmap-gui-tab-headers">
-              <a href="#wpmap-tab-posts">Posts</a>
-              <a href="#wpmap-tab-design">Design</a>
+              <a class="tab-header-{tabVisibility(0)}" on:click="setTab(0, event)" href="#wpmap-tab-posts">Posts</a>
+              <a class="tab-header-{tabVisibility(1)}" on:click="setTab(1, event)" href="#wpmap-tab-design">Design</a>
             </nav>
             <div class="wpmap-gui-tabs">
-              <div class="wpmap-gui-tab" id="wpmap-tab-posts">
+              <div class="wpmap-gui-tab tab-{tabVisibility(0)}" id="wpmap-tab-posts">
                 <h2>Posts & Pages</h2>
                 {#if $posts.length === 0}
                     <p>No post available</p>
@@ -22,7 +21,7 @@
                     <WpMapPostList/>
                 {/if}
               </div>
-              <div class="wpmap-gui-tab" id="wpmap-tab-design">
+              <div class="wpmap-gui-tab tab-{tabVisibility(1)}" id="wpmap-tab-design">
                 <h2>Pin design</h2>
                 <PinDesigner on:change="$actSetPinConfig(event)" height={$mapConfig.pin_config.height} radius={$mapConfig.pin_config.radius} fillColor={$mapConfig.pin_config.fillColor} strokeColor={$mapConfig.pin_config.strokeColor} />
               </div>
@@ -56,10 +55,35 @@ export default {
     WpMap,
     PinDesigner
   },
+  data() {
+    return {
+      tab: -1
+    }
+  },
   oncreate() {
   	this.store.on('refreshMap', () => {
   		this.refs.map.fetch()
   	})
+    setTimeout(() => this.setTab(0))
+  },
+  computed: {
+    tabVisibility: ({ tab }) => index => {
+      return (-1 === tab) ? 'visible' : tab === index ? 'visible' : 'hidden'
+    }
+  },
+  methods: {
+    setTab(n, evt) {
+      if (evt) {
+        evt.target.blur()
+        evt.preventDefault()
+      }
+      if (n === this.get().tab) {
+        return
+      }
+      this.set({ tab: n })
+      // this.set({ tab: 'none' })
+      // setTimeout(() => this.set({ tab: n }))
+    }
   }
 }
 </script>
@@ -78,5 +102,26 @@ export default {
     box-sizing: border-box;
     padding-right: 1em;
     margin: 0;
+  }
+  .wpmap-gui-tab-headers {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    z-index: 10;
+  }
+  .wpmap-gui-tab-headers a {
+    padding: .5em;
+    margin-right: 1em;
+    border-bottom: 3px solid #aaa;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .wpmap-gui-tab-headers a.tab-header-visible {
+    border-bottom: 3px solid #077e94;
+  }
+  .wpmap-gui-tabs {
+  }
+  .wpmap-gui-tab.tab-hidden {
+    display: none;
   }
 </style>
