@@ -1,11 +1,11 @@
 <div class="pin-designer-columns">
   <div>
-    <h4>Size</h4>
+    <h4>{__('Size')}</h4>
     <input type="range" bind:value=height min="{minimumHeight}" max="{maximumHeight}" on:change="fixAndFire()" />
     <span>{height}px</span>
-    <h4>Shape</h4>
+    <h4>{__('Shape')}</h4>
     <input type="range" bind:value=radius min="{minimumRadius}" max="{maximumRadius}" on:change="fixAndFire()" />
-    <h4>Colors Fill / Outline</h4>
+    <h4>{__('PinColors')}</h4>
     <input type="color" bind:value=fillColor on:change="fireChange()"/>
     <input type="color" bind:value=strokeColor on:change="fireChange()"/>
   </div>
@@ -18,6 +18,8 @@
 
 <script>
     import { pinPath, pinViewBox } from '../../helpers/map-pins'
+    import __ from '../../helpers/gui-texts-i18n'
+
     export default {
         data() {
             return {
@@ -60,7 +62,8 @@
             const { height, radius, fillColor, strokeColor } = this.get()
             this.fire('change', { height, radius, fillColor, strokeColor })
           }
-        }
+        },
+        helpers: { __ }
     }
 </script>
 

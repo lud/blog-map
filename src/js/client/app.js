@@ -6,8 +6,6 @@ import loadFa from '../helpers/fa-loader'
 domready(function(){
     const { maps } = window._wpmap
     maps.forEach(function(map) {
-      console.log('map', map)
-      console.log('map.el', map.el)
       const app = new WpMap({
         target: map.el,
         data: {

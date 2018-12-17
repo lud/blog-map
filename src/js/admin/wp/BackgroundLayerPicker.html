@@ -1,6 +1,6 @@
 <div class="wpmap-bgpicker-columns">
 	<div>
-    <h4>Providers</h4>
+    <h4>{__('Providers')}</h4>
     <ul>
       {#each Object.entries(providers) as [providerKey, provider]}
         <li>
@@ -12,7 +12,7 @@
     </ul>
 	</div>
 	<div>
-    <h4>Variants</h4>
+    <h4>{__('Variants')}</h4>
     <ul>
       {#if selectedProviderKey}
         {#each variantsInfos as vInfos}
@@ -30,6 +30,7 @@
 <script>
 
 import { L } from '../../helpers/leaflet-loader'
+import __ from '../../helpers/gui-texts-i18n'
 
 const { providers } = L.TileLayer.Provider
 const whitelist = [
@@ -70,11 +71,9 @@ export default {
       // Here we work on full providers and not on the subset, 'cause we may
       // allow to type the provider key directly.
       let { variants } = providers[selectedProviderKey]
-      console.log('variants', variants)
       if (! variants) {
         return [{name: 'Default', background: selectedProviderKey, key: NO_VARIANTS}]
       }
-      console.log('variants 2', variants)
       return Object.entries(variants).map(([key, value]) => ({
         name: key,
         key,
@@ -104,6 +103,7 @@ export default {
     }
   },
   helpers: {
+  	__,
     isActiveClass(key, selectedKey) {
       return key === selectedKey ? 'wpmpap-bg-active' : ''
     }

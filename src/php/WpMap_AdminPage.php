@@ -26,10 +26,6 @@ class WpMap_AdminPage {
         wp_enqueue_style('wpmap_admin_bundle_css');
         echo "\n".'<div id="wpmap-admin-app"></div>';
     }
-    private function getPostById($id)
-    {
-        throw new \Exception("@todo get post by id");
-    }
 
     public static function ajaxRoutes()
     {

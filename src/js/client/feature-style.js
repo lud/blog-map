@@ -36,7 +36,8 @@ FeatureStyle.prototype.setLayerStyle =  function(layer, key) {
   if (layer.setStyle) {
     layer.setStyle(this.get(key))
   } else {
-    console.warn("Layer is not styleable")
+    // @todo reiplement layer hovering
+    // console.warn("Layer is not styleable")
   }
   return layer
 }

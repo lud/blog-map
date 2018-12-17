@@ -21,7 +21,7 @@
   const META_HOVER = 'layer:hovered'
 
   function mountMap(el) {
-    const map = L.map(el, {attributionControl: false}).setView([0, 0], 10)
+    const map = L.map(el, {attributionControl: false}).setView([0, 0], 2)
     return { map }
   }
 
@@ -142,7 +142,6 @@
         if (collection.features.length > 1) {
           map.fitBounds(groupLayer.getBounds(), {
             padding: [50, 50],
-            animate: false
           })
         } else if (collection.features.length === 1) {
           // geojson is lonlat, but leaflet is latlng
@@ -190,7 +189,7 @@
         this.panToTwoObjects(layer.getLatLng(), map.getCenter())
       },
       panToLayer(layer) {
-        console.warn('@todo pan only if the map does not already contain the layer')
+        // console.warn('@todo pan only if the map does not already contain the layer')
         const { map } = this.get()
         map.panTo(layer.getLatLng(), {
           duration: 0.6

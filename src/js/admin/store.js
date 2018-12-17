@@ -122,7 +122,6 @@ class Store extends BaseStore {
   }
 
   patchPostMeta(post, changeset, opts = {refresh: true}) {
-    console.log('get id', post._id)
     _patchPostMeta(post._id, changeset).then(
       newMeta => this.resetPostMeta(post._id, newMeta, opts),
       err => this.setFetchedPost(post)
@@ -201,7 +200,6 @@ class Store extends BaseStore {
     let { mapConfigs } = this.get()
     mapConfigs = Object.assign({}, mapConfigs, {[id]: conf})
     this.set({ mapConfigs })
-    console.log('mapConfigs', mapConfigs)
     this.refreshMap()
   }
 
@@ -211,8 +209,5 @@ class Store extends BaseStore {
 }
 
 const store = new Store()
-
-console.warn('@todo do not publish in window in prod')
-window.store = store
 
 export default store

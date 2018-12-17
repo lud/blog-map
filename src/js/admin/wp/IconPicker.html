@@ -28,14 +28,12 @@ export default {
     },
   },
 	onstate({ changed, current, previous }) {
-    console.log(JSON.stringify(current))
 		if (changed.value) {
     	this.fire('change', current.value)
 		}
 	},
   methods: {
     onInput(value, evt, doCommit) {
-      console.log('evt', evt)
       this.set({ editingValue: value })
       if (doCommit) {
 				this.endEditMode(true)

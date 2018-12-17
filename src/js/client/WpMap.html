@@ -20,7 +20,7 @@
       </div>
       <div class="wpmap-controls">
         <span class="wpmap-date">
-        Published on
+        {__('PublishedOn')}
         {#await postInfoPromise}
           <span class="loading">...</span>
         {:then infos}
@@ -31,8 +31,8 @@
         {/await}
         </span>
 
-        <a class="wpmap-btn" href="{page.url}">Read More</a>
-        <a href="#" class="wpmap-btn" on:click="closeInfoPanel(event)">Close</a>
+        <a class="wpmap-btn" href="{page.url}">{__('ReadMore')}</a>
+        <a href="#" class="wpmap-btn" on:click="closeInfoPanel(event)">{__('Close')}</a>
       </div>
     </div>
   {/if}
@@ -42,6 +42,8 @@
   import { fly } from 'svelte-transitions'
   import Map from './WpMapRenderer.html'
   import { fetchPosts, getPostInfos } from './data-source'
+  import __ from '../helpers/gui-texts-i18n'
+
 
   function generateGlobalId() {
     return 'wpmap-' + Math.round(Date.now() + Math.random() * Date.now()).toString(36)
@@ -123,6 +125,7 @@
       },
     },
     helpers: {
+      __
     }
   }
 </script>

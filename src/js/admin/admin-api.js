@@ -26,8 +26,7 @@ export function patchPostLayer(postID, mapID, changeset) {
 }
 
 export function patchMap(mapID, changeset) {
-  console.log('send changeset', changeset)
-    return wpajax
+  return wpajax
     .patch('patchMap', {
         mapID,
         changeset
