@@ -5,7 +5,7 @@
             <div class="wpmap-item-data">
                 <h4>
                     {#if post.props.type !== 'post'}
-                        <span>[{post.props.type}]</span>
+                        [{post.props.type}]
                     {/if}
                     {post.props.title}
                 </h4>
@@ -79,6 +79,7 @@ export default {
     .wpmap-admin-posts-list,
     .wpmap-admin-posts-list :global(span) ,
     .wpmap-admin-posts-list :global(i) ,
+    .wpmap-admin-posts-list :global(h4) ,
     .wpmap-admin-posts-list :global(label) {
         line-height: 22px;
         vertical-align: middle;
