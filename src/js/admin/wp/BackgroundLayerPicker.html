@@ -1,0 +1,136 @@
+<div class="wpmap-bgpicker-columns">
+	<div>
+    <h4>Providers</h4>
+    <ul>
+      {#each Object.entries(providers) as [providerKey, provider]}
+        <li>
+          <a on:click="selectProvider(providerKey)" class="{isActiveClass(providerKey, selectedProviderKey)}">
+            {providerKey}
+          </a>
+        </li>
+      {/each}
+    </ul>
+	</div>
+	<div>
+    <h4>Variants</h4>
+    <ul>
+      {#if selectedProviderKey}
+        {#each variantsInfos as vInfos}
+          <li>
+            <a on:click="selectVariant(vInfos)" class="{isActiveClass(vInfos.key, selectedVariantKey)}">
+              {vInfos.name}
+            </a>
+          </li>
+        {/each}
+      {/if}
+    </ul>
+	</div>
+</div>
+
+<script>
+
+import { L } from '../../helpers/leaflet-loader'
+
+const { providers } = L.TileLayer.Provider
+const whitelist = [
+'OpenStreetMap',
+'OpenTopoMap',
+'OpenRailwayMap',
+'SafeCast',
+'OpenMapSurfer',
+'Hydda',
+'Stamen',
+'Esri',
+'MtbMap',
+'CartoDB',
+'HikeBike',
+'NASAGIBS',
+'GeoportailFrance',
+'Wikimedia',
+]
+const providersOk = {}
+whitelist.forEach(k => {
+  providersOk[k] = providers[k]
+})
+const NO_VARIANTS = '__novariants'
+
+export default {
+  data() {
+    return {
+      providers: providersOk,
+      selectedProviderKey: null,
+      selectedVariantKey: null,
+    }
+  },
+  computed: {
+    variantsInfos: ({ selectedProviderKey }) => {
+      if (null === selectedProviderKey) {
+        return []
+      }
+      // Here we work on full providers and not on the subset, 'cause we may
+      // allow to type the provider key directly.
+      let { variants } = providers[selectedProviderKey]
+      console.log('variants', variants)
+      if (! variants) {
+        return [{name: 'Default', background: selectedProviderKey, key: NO_VARIANTS}]
+      }
+      console.log('variants 2', variants)
+      return Object.entries(variants).map(([key, value]) => ({
+        name: key,
+        key,
+        background: `${selectedProviderKey}.${key}`
+      }))
+    }
+  },
+  oncreate() {
+    const { value } = this.get()
+    if (value) {
+      const s = value.split('.')
+      this.set({
+        selectedProviderKey: s[0],
+        selectedVariantKey: s[1] || NO_VARIANTS
+      })
+    }
+  },
+  methods: {
+    selectProvider(key) {
+      this.set({ selectedProviderKey: key })
+      const { variantsInfos } = this.get()
+      this.selectVariant(variantsInfos[0])
+    },
+    selectVariant(vInfos) {
+      this.set({ selectedVariantKey: vInfos.key })
+      this.fire('change', vInfos)
+    }
+  },
+  helpers: {
+    isActiveClass(key, selectedKey) {
+      return key === selectedKey ? 'wpmpap-bg-active' : ''
+    }
+  },
+}
+
+</script>
+
+<style>
+  .wpmap-bgpicker-columns {
+    display: flex;
+    flex-direction: row;
+  }
+  h4 {
+  	margin: 0;
+  }
+  .wpmap-bgpicker-columns ul {
+    padding: 0 1em 0 0;
+  }
+  a.wpmpap-bg-active {
+    background-color: #e0dede;
+    font-weight: bold;
+  }
+  a {
+    display: block;
+    padding: 0 .5em;
+    line-height: 22px;
+    cursor: pointer;
+  }
+</style>

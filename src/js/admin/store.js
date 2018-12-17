@@ -169,11 +169,24 @@ class Store extends BaseStore {
     this.patchPostLayer(post, mapID, newLayer)
   }
 
-  actSetPinConfig({height, radius, fillColor, strokeColor }) {
+  actSetPinConfig({ height, radius, fillColor, strokeColor }) {
     const { mapID, mapConfig } = this.get()
     const currentConfig = mapConfig
     const pinConfig = { height, radius, fillColor, strokeColor }
     patchMap(mapID, { pin_config: pinConfig })
+      .then(
+        data => this.setFetchedMapConfig(data),
+        err => {
+          console.error("Could not save map")
+          // this.setFetchedMapConfig(currentConfig)
+        }
+      )
+  }
+
+  actSetBGLayerConfig({ background }) {
+    const { mapID, mapConfig } = this.get()
+    const currentConfig = mapConfig
+    patchMap(mapID, { background })
       .then(
         data => this.setFetchedMapConfig(data),
         err => {
@@ -188,6 +201,7 @@ class Store extends BaseStore {
     let { mapConfigs } = this.get()
     mapConfigs = Object.assign({}, mapConfigs, {[id]: conf})
     this.set({ mapConfigs })
+    console.log('mapConfigs', mapConfigs)
     this.refreshMap()
   }
 

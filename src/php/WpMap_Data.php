@@ -6,6 +6,7 @@ class WpMap_Data {
 
     const MAPS_TABLE_NAME = 'wpmap_maps';
     const DEFAULT_ICON = 'star';
+    const DEFAULT_BACKGROUND_LAYER = 'OpenTopoMap';
     const META_TABLE_NAME = 'postmeta';
     const POSTS_TABLE_NAME = 'posts';
     const META_COLUMN_KEY = 'meta_key';

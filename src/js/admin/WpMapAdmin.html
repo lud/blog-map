@@ -10,7 +10,8 @@
           <div class="wpmap-gui-column">
             <nav class="wpmap-gui-tab-headers">
               <a class="tab-header-{tabVisibility(0)}" on:click="setTab(0, event)" href="#wpmap-tab-posts">Posts</a>
-              <a class="tab-header-{tabVisibility(1)}" on:click="setTab(1, event)" href="#wpmap-tab-design">Design</a>
+              <a class="tab-header-{tabVisibility(1)}" on:click="setTab(1, event)" href="#wpmap-tab-pindesign">Pin Design</a>
+              <a class="tab-header-{tabVisibility(2)}" on:click="setTab(2, event)" href="#wpmap-tab-bg">Background</a>
             </nav>
             <div class="wpmap-gui-tabs">
               <div class="wpmap-gui-tab tab-{tabVisibility(0)}" id="wpmap-tab-posts">
@@ -21,9 +22,20 @@
                     <WpMapPostList/>
                 {/if}
               </div>
-              <div class="wpmap-gui-tab tab-{tabVisibility(1)}" id="wpmap-tab-design">
+              <div class="wpmap-gui-tab tab-{tabVisibility(1)}" id="wpmap-tab-pindesign">
                 <h2>Pin design</h2>
-                <PinDesigner on:change="$actSetPinConfig(event)" height={$mapConfig.pin_config.height} radius={$mapConfig.pin_config.radius} fillColor={$mapConfig.pin_config.fillColor} strokeColor={$mapConfig.pin_config.strokeColor} />
+                <PinDesigner
+                  on:change="$actSetPinConfig(event)"
+                  height={$mapConfig.pin_config.height}
+                  radius={$mapConfig.pin_config.radius}
+                  fillColor={$mapConfig.pin_config.fillColor}
+                  strokeColor={$mapConfig.pin_config.strokeColor} />
+              </div>
+              <div class="wpmap-gui-tab tab-{tabVisibility(2)}" id="wpmap-tab-bg">
+                <h2>Background Layer</h2>
+                <BackgroundLayerPicker
+                  on:change="$actSetBGLayerConfig(event)"
+                  value={$mapConfig.background} />
               </div>
             </div>
           </div>
@@ -44,6 +56,7 @@ import LoadingSpinner from './wp/LoadingSpinner.html'
 import CountriesDatalist from './wp/CountriesDatalist.html'
 import IconsDatalist from './wp/IconsDatalist.html'
 import PinDesigner from './wp/PinDesigner.html'
+import BackgroundLayerPicker from './wp/BackgroundLayerPicker.html'
 import WpMap from './../client/WpMap.html'
 
 export default {
@@ -53,6 +66,7 @@ export default {
     CountriesDatalist,
     IconsDatalist,
     WpMap,
+    BackgroundLayerPicker,
     PinDesigner
   },
   data() {
@@ -64,7 +78,7 @@ export default {
   	this.store.on('refreshMap', () => {
   		this.refs.map.fetch()
   	})
-    setTimeout(() => this.setTab(1))
+    setTimeout(() => this.setTab(2))
   },
   computed: {
     tabVisibility: ({ tab }) => index => {

@@ -150,11 +150,12 @@ class WpMap_Migration {
         $charset_collate = $wpdb->get_charset_collate();
 
         $defaultPin = '{"height": 34, "radius": 14, "fillColor": "#7babdf", "strokeColor": "#0088aa"}';
+        $defaultBackground = WpMap_Data::DEFAULT_BACKGROUND_LAYER;
         $sqlCreate = "CREATE TABLE $table (
           id VARCHAR(32) NOT NULL,
           name TINYTEXT NULL,
           pin_config VARCHAR(255) DEFAULT '$defaultPin',
-          background VARCHAR(32) DEFAULT 'OpenTopoMap',
+          background VARCHAR(32) DEFAULT '$defaultBackground',
           PRIMARY KEY  (id)
         ) $charset_collate;";
 

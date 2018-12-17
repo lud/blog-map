@@ -13,6 +13,8 @@ class WpMap_Serializer
                 }
                 $value = json_encode($value);
                 break;
+            case 'background':
+                break;
             default:
                 throw new InvalidArgumentException("Serialize unauthorized key $key");
         }
