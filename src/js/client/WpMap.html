@@ -20,7 +20,7 @@
       </div>
       <div class="wpmap-controls">
         <span class="wpmap-date">
-        Publié le
+        Published on
         {#await postInfoPromise}
           <span class="loading">...</span>
         {:then infos}
@@ -32,7 +32,7 @@
         </span>
 
         <a class="wpmap-btn" href="{page.url}">Read More</a>
-        <a href="#" class="wpmap-btn" on:click="closeInfoPanel(event)">fermer</a>
+        <a href="#" class="wpmap-btn" on:click="closeInfoPanel(event)">Close</a>
       </div>
     </div>
   {/if}
@@ -131,7 +131,7 @@
   .wpmap-panel {
     box-sizing: border-box;
     /*height: 50%;*/
-    background: purple;
+    background: #52555f;
     color: white;
     padding: 10px;
     left: 0px;
@@ -182,5 +182,10 @@
     border-radius: 4px;
     padding: 0 4px;
     margin: 0 4px;
+  }
+  :global(.widget .wpmap-map a) ,
+  :global(.widget .wpmap-map a:hover) {
+    box-shadow: none;
+    text-decoration: none;
   }
 </style>

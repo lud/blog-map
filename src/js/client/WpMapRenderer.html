@@ -21,7 +21,7 @@
   const META_HOVER = 'layer:hovered'
 
   function mountMap(el) {
-    const map = L.map(el).setView([0, 0], 10)
+    const map = L.map(el, {attributionControl: false}).setView([0, 0], 10)
     return { map }
   }
 
