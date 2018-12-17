@@ -1,33 +1,21 @@
-<div>
+<div class="pin-designer-columns">
   <div>
-    <label>
-      <span>Size</span>
-      <input type="range" bind:value=height min="{minimumHeight}" max="{maximumHeight}" on:change="fixAndFire()" />
-      <span>{height}px</span>
-    </label>
-    <br/>
-    <label>
-      <span>Shape</span>
-      <input type="range" bind:value=radius min="{minimumRadius}" max="{maximumRadius}" on:change="fixAndFire()" />
-    </label>
-    <br/>
-    <label>
-      <span>Fill Color</span>
-      <input type="color" bind:value=fillColor on:change="fireChange()"/>
-    </label>
-    <br/>
-    <label>
-      <span>Outline Color</span>
-      <input type="color" bind:value=strokeColor on:change="fireChange()"/>
-    </label>
+    <h4>Size</h4>
+    <input type="range" bind:value=height min="{minimumHeight}" max="{maximumHeight}" on:change="fixAndFire()" />
+    <span>{height}px</span>
+    <h4>Shape</h4>
+    <input type="range" bind:value=radius min="{minimumRadius}" max="{maximumRadius}" on:change="fixAndFire()" />
+    <h4>Colors Fill / Outline</h4>
+    <input type="color" bind:value=fillColor on:change="fireChange()"/>
+    <input type="color" bind:value=strokeColor on:change="fireChange()"/>
   </div>
-  <div>
+  <div class="pin-designer-renderzone">
     <svg style="height: {height + strokeWidth * 2}px; width: {radius * 2 + strokeWidth * 2};" viewBox="{viewBox}">
       <path d="{path}" stroke-width="{strokeWidth}" stroke="{strokeColor}" fill="{fillColor}"></path>
     </svg>
   </div>
-
 </div>
+
 <script>
     import { pinPath, pinViewBox } from '../../helpers/map-pins'
     export default {
@@ -76,3 +64,25 @@
     }
 </script>
 
+<style>
+  .pin-designer-columns {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .pin-designer-renderzone {
+    padding: 1em;
+    width:90px;
+  }
+  .pin-designer-renderzone svg {
+    margin: auto;
+    display: block;
+  }
+  input, span {
+    vertical-align: middle;
+  }
+  h4 {
+    margin: 0;
+  }
+</style>
