@@ -63,10 +63,12 @@ class WpMap_Data {
 
     public function findMap($mapID)
     {
-        return $this
+        $map = $this
             ->forTable(self::MAPS_TABLE_NAME)
             ->where('id', $mapID)
             ->findOne();
+        $map = $map ? WpMap_Serializer::unserializeMap($map) : false;
+        return $map;
     }
 
     public function postLayer($postID, $mapID)
@@ -84,6 +86,13 @@ SQL;
             ))
             ->findOne();
         return $this->fetchLayerKeys($layer, array('icon', 'visible'));
+    }
+
+    public function mapsConfigs()
+    {
+        $table = $this->tprefix(WpMap_Data::MAPS_TABLE_NAME);
+        $rs = $this->runQuery("SELECT * FROM $table")->findMany();
+        return $rs;
     }
 
     public function mapPosts($mapID)
@@ -187,7 +196,7 @@ SQL;
         return $sql;
     }
 
-    private function runQuery($sql, $queryParams)
+    private function runQuery($sql, array $queryParams = array())
     {
         $sql = $this->setQueryEnv($sql);
         $query = $this
@@ -209,14 +218,14 @@ SQL;
 
         $records = array();
         foreach ($query as $item) {
-            $records[] = static::expandRecord($item, $propKeys, $metaKeys, $layerKeys);
+            $records[] = static::expandPostRecord($item, $propKeys, $metaKeys, $layerKeys);
         }
         return $records;
     }
 
 
 
-    private function expandRecord(ORM $record, $propKeys, $metaKeys, $layerKeys)
+    private function expandPostRecord(ORM $record, $propKeys, $metaKeys, $layerKeys)
     {
         $props = $this->fetchPropKeys($record, $propKeys);
         $meta = $this->fetchMetaKeys($record, $metaKeys);

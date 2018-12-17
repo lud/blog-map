@@ -25,6 +25,8 @@ function wpmap_autoloader($class)
         require_once dirname(__FILE__) . "/src/php/$class.php";
     } elseif('ORM' === $class) {
         require_once dirname(__FILE__) . "/idiorm.php";
+    } elseif('IOList' === $class) {
+        require_once dirname(__FILE__) . "/src/php/$class.php";
     }
 }
 

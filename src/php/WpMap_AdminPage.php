@@ -53,13 +53,8 @@ class WpMap_AdminPage {
 
     public function getMapsConfig()
     {
-        global $wpdb;
-        $table = WpMap_Data::mapsTableName($wpdb);
-        $rs = $wpdb->get_results("SELECT * FROM $table");
-        foreach ($rs as &$record) {
-            $record->pin_config = json_decode($record->pin_config);
-        }
-        return $rs;
+        $configs = WpMap_Data::getInstance()->mapsConfigs();
+        return WpMap_Serializer::unserializeMaps($configs, $asArray = true);
     }
 
     public function patchPostLayer($payload)
@@ -67,7 +62,7 @@ class WpMap_AdminPage {
         $mapID = $payload['mapID'];
         $postID = $payload['postID'];
         $changeset = $payload['changeset'];
-        self::ensureMapExists($mapID);
+        self::findMapOrFail($mapID);
         self::ensurePostExists($payload['postID']);
 
         foreach ($changeset as $key => $value) {
@@ -109,7 +104,7 @@ class WpMap_AdminPage {
         return WpMap_Data::getInstance()->postMeta($postID);
     }
 
-    private function ensureMapExists($mapID)
+    private function findMapOrFail($mapID)
     {
         $db = WpMap_Data::getInstance();
         if (! $map = $db->findMap($mapID)) {
@@ -129,18 +124,13 @@ class WpMap_AdminPage {
     public function patchMap($payload)
     {
         $mapID = $payload['mapID'];
-        $map = static::ensureMapExists($mapID);
+        $map = static::findMapOrFail($mapID);
         $changeset = $payload['changeset'];
-        foreach ($changeset as $key => &$value) {
-            $value = WpMap_Serializer::serializeMapColumnValue($key, $value);
-        }
         $map->set($changeset);
+        $map = WpMap_Serializer::serializeMap($map);
         $map->save();
-        $data = $map->as_array();
-        foreach ($data as $key => &$value) {
-            $value = WpMap_Serializer::unserializeMapColumnValue($key, $value);
-        }
-        return $data;
+        $map = WpMap_Serializer::unserializeMap($map);
+        return $map->as_array();
     }
 
     private static function validateInputMeta($key, $value) {
