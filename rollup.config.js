@@ -13,7 +13,7 @@ import {
   writeFileSync
 } from 'fs'
 
-const production = !process.env.ROLLUP_WATCH
+const production = process.env.NODE_ENV === 'production'
 
 function createConfig(config) {
 
@@ -54,7 +54,7 @@ function createConfig(config) {
       // If we're building for production (npm run build
       // instead of npm run dev), transpile and minify
       production && buble({
-        include: ['resources/**', 'node_modules/svelte/shared.js']
+        include: ['src/**', 'node_modules/**']
       }),
       production && uglify()
     ]

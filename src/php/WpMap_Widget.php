@@ -43,8 +43,7 @@ class WpMap_Widget extends WP_Widget {
         }
         $fieldId = $this->get_field_id('mapID');
         $fieldName = $this->get_field_name('mapID');
-        // $formstyle = count($configs) > 1 ? '' : 'display:none;';
-        $formstyle = '';
+        $formstyle = count($configs) > 1 ? '' : 'display:none;';
         ?>
             <p>
                 <label for="<?php echo $fieldId; ?>" style="<?php echo $formstyle; ?>">
@@ -72,13 +71,14 @@ class WpMap_Widget extends WP_Widget {
     public function widget($args, $instance)
     {
         $mapID = $instance['mapID'];
-        $map = WpMap_Data::getInstance()->findMap($mapID)->as_array();
+        $map = WpMap_Data::getInstance()->findMap($mapID);
         if (!$map) {
             if ($mapID !== self::NO_MAP_ID) {
                 echo "Map $mapID does not exist";
             }
             return;
         }
+        $map = $map->as_array();
         wp_enqueue_style('wpmap_widget_bundle_css');
         wp_enqueue_script('wpmap_widget_bundle_js');
 

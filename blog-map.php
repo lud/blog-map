@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Blog Map
-Plugin URI: http://my-awesomeness-emporium.com
+Plugin URI:
 description: Show you articles on a map
 Version: 1.2
-Author: Jean-Michel Code
-Author URI: http://mrtotallyawesome.com
+Author: Ludovic Demblans
+Author URI:
 License: MIT
 */
 defined('ABSPATH') or exit();

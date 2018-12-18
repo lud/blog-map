@@ -1,4 +1,8 @@
 /node_modules
+/_release
+/_release.zip
+/blog-map-plugin
+/blog-map-plugin.zip
 /.idea
 /.vscode
 /.vagrant

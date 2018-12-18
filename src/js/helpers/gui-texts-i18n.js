@@ -21,6 +21,7 @@ registerTranslation(DEFAULT_LANG,
     'PostsList': 'Posts & Pages',
     'PublishedOn': 'Published',
     'ReadMore': 'Read more',
+    'PickCountry': 'Pick a country',
   }))
 registerTranslation('fr-FR',
   createTranslation(translations[DEFAULT_LANG], {
@@ -36,6 +37,7 @@ registerTranslation('fr-FR',
     'PublishedOn': 'Publié le',
     'ReadMore': 'Lire',
     'Close': 'Fermer',
+    'PickCountry': 'Choisir pays',
   }))
 
 export function getI18nFunction(code) {

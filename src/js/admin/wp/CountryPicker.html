@@ -10,14 +10,16 @@
       on:change="onNameInput(this.value, true)">
     <span class="map-status-bg">{statusText}</span>
   {:else}
-    <span on:click="startEditMode()" class="country-flag status-bg" style="background-image: url(http://www.geognos.com/api/en/countries/flag/{value}.png)">
-      {countryName} [{value || '?'}]
-    </span>
+    <a on:click="startEditMode()" class="status-bg{value && ' country-flag'}" style="{value && `background-image: url(http://www.geognos.com/api/en/countries/flag/${value}.png)`}">
+      {countryName} {value ? '[' + value + ']' : __('PickCountry')}
+    </a>
   {/if}
 </span>
 
 <script>
 import { countries } from 'country-data'
+import __ from '../../helpers/gui-texts-i18n'
+
 const countryNameToAlpha2 = {}
 countries.all.forEach(c => {
   countryNameToAlpha2[c.name] = c.alpha2
@@ -75,6 +77,9 @@ export default {
 	    	}
     	}
     }
+  },
+  helpers: {
+    __
   }
 }
 </script>
@@ -96,7 +101,11 @@ export default {
   .alpha2-status.status-success input {
     box-shadow: inset 0 0 4px 1px #cfc;
   }
-  .country-flag {
+  a {
+    text-decoration: underline;
+  }
+  a.country-flag {
+    text-decoration: none;
     padding-left: 20px;
     background-repeat: no-repeat;
     background-position: left center;

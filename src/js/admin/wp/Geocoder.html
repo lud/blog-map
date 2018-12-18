@@ -5,7 +5,7 @@
       size="10"
       class="{statusClass}"
       name="wpmap-geocoder"
-      placeholder="{defaultDisplay}"
+      placeholder="{defaultDisplay || ''}"
       on:input="handleInput(this.value)" />
     {#if resultsPanelVisible}
     <div ref:overlay class="geocoder-overlay">
@@ -29,7 +29,7 @@
     </div>
     {/if}
   {:else}
-    <abbr title="A country code is required">?</abbr>
+    <abbr title="Please select a country">?</abbr>
   {/if}
 </span>
 

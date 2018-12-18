@@ -1,6 +1,6 @@
 <label class="switch {classChecked}">
   <input type="checkbox" checked={checked} on:change="changedValue(event)">
-  <i class="fa fa-{icon}"></i>
+  <i class="fa fa-{faicon}"></i>
 </label>
 
 <script>
@@ -13,7 +13,7 @@
             }
         },
         computed: {
-          icon: ({ checked }) => checked ? 'eye' : 'eye-slash',
+          faicon: ({ checked }) => checked ? 'eye' : 'eye-slash',
           classChecked: ({ checked }) => checked ? 'switch-on' : 'switch-off',
         },
         methods: {

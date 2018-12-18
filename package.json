@@ -1,7 +1,7 @@
 {
     "private": true,
     "scripts": {
-        "build": "rimraf dist/* && rollup -c",
+        "build": "rollup -c",
         "autobuild": "rollup -c -w",
         "dev": "npm run clean && npm run copy-assets && npm run autobuild",
         "copy-assets": "cp node_modules/leaflet/dist/images public/widget/ -rv",

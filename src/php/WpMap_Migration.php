@@ -173,7 +173,7 @@ class WpMap_Migration {
     {
         $inserted = $wpdb->insert(WpMap_Data::mapsTableName($wpdb), array(
                 'id' => 'default-map',
-                'name' => 'Default Map',
+                'name' => 'Blog Map',
             )
         );
         return $inserted;

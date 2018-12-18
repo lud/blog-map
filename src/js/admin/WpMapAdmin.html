@@ -79,7 +79,7 @@ export default {
   	this.store.on('refreshMap', () => {
   		this.refs.map.fetch()
   	})
-    setTimeout(() => this.setTab(1))
+    setTimeout(() => this.setTab(0))
   },
   computed: {
     tabVisibility: ({ tab }) => index => {
