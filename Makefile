@@ -8,16 +8,13 @@ release:
 	yarn copy-assets
 	yarn build
 	NODE_ENV=production yarn build
-	mkdir _release
-	cp blog-map.php _release/ -v
-	cp idiorm.php _release/ -v
-	cp README.txt _release/ -v
-	cp LICENSE.txt _release/ -v
-	mkdir _release/src
-	cp src/php _release/src/ -r -v
-	cp public _release/ -r -v
+	mkdir -p _release/blog-map/src
+	cp -v blog-map.php _release/blog-map/
+	cp -v idiorm.php _release/blog-map/
+	cp -v README.txt _release/blog-map/
+	cp -v LICENSE.txt _release/blog-map/
+	cp -rv src/php _release/blog-map/src/
+	cp -rv public _release/blog-map/
+	zip -9rv _release/blog-map.zip _release/blog-map
 	tree _release
-	mv _release blog-map-plugin -v
-	zip -9 -r blog-map-plugin.zip blog-map-plugin -v
-	mv blog-map-plugin _release -v
 
