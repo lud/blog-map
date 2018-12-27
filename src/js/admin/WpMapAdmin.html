@@ -7,13 +7,14 @@
         <CountriesDatalist/>
         <IconsDatalist/>
         <h1>{__('BlogMapConfig')}</h1>
+        <nav class="wpmap-gui-tab-headers">
+          <a class="tab-header-{tabVisibility(0)}" on:click="setTab(0, event)" href="#wpmap-tab-posts">{__('PostsList')}</a>
+          <a class="tab-header-{tabVisibility(1)}" on:click="setTab(1, event)" href="#wpmap-tab-pindesign">{__('PinDesign')}</a>
+          <a class="tab-header-{tabVisibility(2)}" on:click="setTab(2, event)" href="#wpmap-tab-bg">{__('BackgroundLayer')}</a>
+          <a class="tab-header-{tabVisibility(3)}" on:click="setTab(3, event)" href="#wpmap-tab-help">{__('Help')}</a>
+        </nav>
         <div class="wpmap-gui-columns">
           <div class="wpmap-gui-column">
-            <nav class="wpmap-gui-tab-headers">
-              <a class="tab-header-{tabVisibility(0)}" on:click="setTab(0, event)" href="#wpmap-tab-posts">{__('PostsList')}</a>
-              <a class="tab-header-{tabVisibility(1)}" on:click="setTab(1, event)" href="#wpmap-tab-pindesign">{__('PinDesign')}</a>
-              <a class="tab-header-{tabVisibility(2)}" on:click="setTab(2, event)" href="#wpmap-tab-bg">{__('BackgroundLayer')}</a>
-            </nav>
             <div class="wpmap-gui-tabs">
               <div class="wpmap-gui-tab tab-{tabVisibility(0)}" id="wpmap-tab-posts">
                 <h2>{__('PostsList')}</h2>
@@ -38,9 +39,13 @@
                   on:change="$actSetBGLayerConfig(event)"
                   value={$mapConfig.background} />
               </div>
+              <div class="wpmap-gui-tab tab-{tabVisibility(3)}" id="wpmap-tab-bg">
+                <h2>{__('Help')}</h2>
+                <HelpPage lang={lang} />
+              </div>
             </div>
           </div>
-          <div class="wpmap-gui-column">
+          <div class="wpmap-gui-column wpmap-gui-mapwrapper">
             <WpMap ref:map mapID={$mapID} config={$mapConfig}/>
           </div>
         </div>
@@ -58,8 +63,9 @@ import CountriesDatalist from './wp/CountriesDatalist.html'
 import IconsDatalist from './wp/IconsDatalist.html'
 import PinDesigner from './wp/PinDesigner.html'
 import BackgroundLayerPicker from './wp/BackgroundLayerPicker.html'
+import HelpPage from './HelpPage.html'
 import WpMap from './../client/WpMap.html'
-import __ from '../helpers/gui-texts-i18n'
+import __, { lang } from '../helpers/gui-texts-i18n'
 import throttle from 'lodash/throttle'
 
 
@@ -71,18 +77,32 @@ export default {
     IconsDatalist,
     WpMap,
     BackgroundLayerPicker,
-    PinDesigner
+    PinDesigner,
+    HelpPage,
   },
   data() {
     return {
-      tab: -1
+      tab: -1,
+      lang
     }
   },
   oncreate() {
   	this.store.on('refreshMap', () => {
   		this.refs.map.fetch()
   	})
-    setTimeout(() => this.setTab(0))
+    setTimeout(() => {
+      let tab = 3 // default to help tab
+      if (window.localStorage) {
+        let stored = window.localStorage.getItem('wpmapAdminSelectedTab')
+        if (stored !== null) {
+          const found = parseInt(stored)
+          if (!isNaN(found)) {
+            tab = found
+          }
+        }
+      }
+      this.setTab(tab)
+    })
   },
   computed: {
     tabVisibility: ({ tab }) => index => {
@@ -99,6 +119,9 @@ export default {
         return
       }
       this.set({ tab: n })
+      if (window.localStorage) {
+        window.localStorage.setItem('wpmapAdminSelectedTab', n.toString())
+      }
       // this.set({ tab: 'none' })
       // setTimeout(() => this.set({ tab: n }))
     },
@@ -142,9 +165,15 @@ export default {
   .wpmap-gui-tab-headers a.tab-header-visible {
     border-bottom: 3px solid #077e94;
   }
+  .wpmap-gui-tab-headers a.tab-header-hidden {
+    color: #999;
+  }
   .wpmap-gui-tabs {
   }
   .wpmap-gui-tab.tab-hidden {
     display: none;
+  }
+  .wpmap-gui-mapwrapper {
+    margin-top: 53px;
   }
 </style>

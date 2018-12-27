@@ -1,0 +1,27 @@
+<div class="wpmap-help">
+    {#await htmlPromise}
+      <p>Loading...</p>
+    {:then html}
+      {@html html}
+    {:catch error}
+      <p>Error : {error}</p>
+    {/await}
+</div>
+
+<script>
+
+import {
+  getHelpPage,
+} from './admin-api'
+
+export default {
+  data() {
+    return {
+      lang: 'en'
+    }
+  },
+  computed: {
+    htmlPromise: ({ lang }) => getHelpPage(lang)
+  }
+}
+</script>

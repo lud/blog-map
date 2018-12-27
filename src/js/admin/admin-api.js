@@ -1,5 +1,9 @@
 import wpajax from '../helpers/wp-ajax.js'
 
+export function getHelpPage(lang) {
+  return wpajax.get('getHelpPage', { lang })
+}
+
 export function getPostsConfig(mapID) {
   return wpajax.get('getPostsConfig', { mapID })
 }

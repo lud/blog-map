@@ -24,7 +24,8 @@ class WpMap_AdminPage {
     {
         wp_enqueue_script('wpmap_admin_bundle_js');
         wp_enqueue_style('wpmap_admin_bundle_css');
-        echo "\n".'<div id="wpmap-admin-app"></div>';
+        echo "\n", '<div id="wpmap-admin-app">';
+        echo '</div>';
     }
 
     public static function ajaxRoutes()
@@ -32,6 +33,7 @@ class WpMap_AdminPage {
         return array(
             'getPostsConfig' => array('GET', array('WpMap_AdminPage', 'getAdminPosts')),
             'getMapsConfig' => array('GET', array('WpMap_AdminPage', 'getMapsConfig')),
+            'getHelpPage' => array('GET', array('WpMap_AdminPage', 'getHelpPage')),
             'patchPostLayer' => array('PATCH', array('WpMap_AdminPage', 'patchPostLayer')),
             'patchPostMeta' => array('PATCH', array('WpMap_AdminPage', 'patchPostMeta')),
             'patchMap' => array('PATCH', array('WpMap_AdminPage', 'patchMap')),
@@ -51,6 +53,17 @@ class WpMap_AdminPage {
     {
         $configs = WpMap_Data::getInstance()->mapsConfigs();
         return WpMap_Serializer::unserializeMaps($configs, $asArray = true);
+    }
+
+    public function getHelpPage($input)
+    {
+        $defaultCode = 'en';
+        $code = explode('-', $input['lang'])[0];
+        $path = dirname(__FILE__) . "/help-pages/$code.html";
+        if (! file_exists($path)) {
+            $path = str_replace("$code.html", 'en.html', $path);
+        }
+        return file_get_contents($path);
     }
 
     public function patchPostLayer($payload)

@@ -42,6 +42,7 @@ registerTranslation('fr-FR',
     'PickCountry': 'Choisir pays',
     'NoGeocodingResults': 'Aucun résultat pour « $0 »',
     'TypeFullLocationName': "Essayez d'entre le nom complet du lieu recherché",
+    'Help': 'Aide',
   }))
 registerTranslation('fr', createTranslation(translations['fr-FR'], {}))
 
@@ -62,8 +63,11 @@ export function getI18nFunction(code) {
     return text
   }
 }
+
+export const lang = navigator.language || navigator.userLanguage
+
 export function getI18nFunctionDefault() {
-  return getI18nFunction(navigator.language || navigator.userLanguage)
+  return getI18nFunction(lang)
 }
 
 const __ = getI18nFunctionDefault()
