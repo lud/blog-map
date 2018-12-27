@@ -1,3 +1,4 @@
+<svelte:window on:scroll="handleScroll()" />
 <div class="wpmap-admin">
     {#await $initialLoading}
         Loading ...
@@ -59,6 +60,8 @@ import PinDesigner from './wp/PinDesigner.html'
 import BackgroundLayerPicker from './wp/BackgroundLayerPicker.html'
 import WpMap from './../client/WpMap.html'
 import __ from '../helpers/gui-texts-i18n'
+import throttle from 'lodash/throttle'
+
 
 export default {
   components: {
@@ -98,7 +101,11 @@ export default {
       this.set({ tab: n })
       // this.set({ tab: 'none' })
       // setTimeout(() => this.set({ tab: n }))
-    }
+    },
+    handleScroll: throttle(function() {
+        const el = this.refs.map.refs.map.refs.leaflet // oooh this is ugly !
+        el.style.transform = 'translateY(' + window.scrollY + 'px)'
+      }, 400, { leading: true, trailing: true })
   },
   helpers: { __   }
 }
