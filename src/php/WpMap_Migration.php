@@ -15,6 +15,7 @@ class WpMap_Migration {
             'v0.0.1-createMapsTable' => array('createMapsTable', 'dropMapsTable'),
             'v0.0.1-createDefaultMap' => 'createDefaultMap',
             'v0.0.2-createPostsLayerconfTable' => array('createPostsLayerconfTable', 'dropPostsLayerconfTable'),
+            'v0.0.3-createColorsConfigFields' => array('createColorsConfigFields', 'dropColorsConfigFields'),
         );
     }
 
@@ -149,7 +150,7 @@ class WpMap_Migration {
         $table = WpMap_Data::mapsTableName($wpdb);
         $charset_collate = $wpdb->get_charset_collate();
 
-        $defaultPin = '{"height": 34, "radius": 14, "fillColor": "#7babdf", "strokeColor": "#0088aa"}';
+        $defaultPin = '{"height": 34, "radius": 14, "fillColor": "#7babdf", "strokeColor": "#0088aa", "iconColor": "#ffffff"}';
         $defaultBackground = WpMap_Data::DEFAULT_BACKGROUND_LAYER;
         $sqlCreate = "CREATE TABLE $table (
           id VARCHAR(32) NOT NULL,
@@ -200,6 +201,26 @@ class WpMap_Migration {
     {
         $table = WpMap_Data::postsLayerconfTableName($wpdb);
         $sql = "DROP TABLE IF EXISTS $table;";
+        return $wpdb->query($sql);
+    }
+
+    private function createColorsConfigFields(wpdb $wpdb)
+    {
+        $table = WpMap_Data::mapsTableName($wpdb);
+        $sql = "ALTER TABLE $table
+            ADD COLUMN panel_bgcolor varchar(7),
+            ADD COLUMN panel_textcolor varchar(7)
+        ";
+        return $wpdb->query($sql);
+    }
+
+    private function dropColorsConfigFields(wpdb $wpdb)
+    {
+        $table = WpMap_Data::mapsTableName($wpdb);
+        $sql = "ALTER TABLE $table
+            DROP COLUMN panel_bgcolor,
+            DROP COLUMN panel_textcolor
+        ";
         return $wpdb->query($sql);
     }
 

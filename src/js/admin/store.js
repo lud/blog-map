@@ -170,10 +170,10 @@ class Store extends BaseStore {
     this.patchPostLayer(post, mapID, newLayer)
   }
 
-  actSetPinConfig({ height, radius, fillColor, strokeColor }) {
+  actSetPinConfig({ height, radius, fillColor, strokeColor, iconColor }) {
     const { mapID, mapConfig } = this.get()
     const currentConfig = mapConfig
-    const pinConfig = { height, radius, fillColor, strokeColor }
+    const pinConfig = { height, radius, fillColor, strokeColor, iconColor }
     patchMap(mapID, { pin_config: pinConfig })
       .then(
         data => this.setFetchedMapConfig(data),

@@ -8,6 +8,7 @@
     <h4>{__('PinColors')}</h4>
     <input type="color" bind:value=fillColor on:change="fireChange()"/>
     <input type="color" bind:value=strokeColor on:change="fireChange()"/>
+    <input type="color" bind:value=iconColor on:change="fireChange()"/>
   </div>
   <div class="pin-designer-renderzone">
     <svg style="height: {height + strokeWidth * 2}px; width: {radius * 2 + strokeWidth * 2};" viewBox="{viewBox}">
@@ -25,6 +26,7 @@
             return {
               fillColor: '#7babdf',
               strokeColor: '#0088aa',
+              iconColor: '#ffffff',
               strokeWidth: 1,
               minimumRadius: 7,
               minimumHeight: 16,
@@ -59,8 +61,11 @@
             this.fireChange()
           },
           fireChange() {
-            const { height, radius, fillColor, strokeColor } = this.get()
-            this.fire('change', { height, radius, fillColor, strokeColor })
+            let { height, radius, fillColor, strokeColor, iconColor } = this.get()
+            // use fa- classes for black & white
+            if (iconColor === '#ffffff') { iconColor = 'white' }
+            if (iconColor === '#000000') { iconColor = 'black' }
+            this.fire('change', { height, radius, fillColor, strokeColor, iconColor })
           }
         },
         helpers: { __ }

@@ -16,6 +16,8 @@ class WpMap_Serializer
             case 'background':
             case 'id':
             case 'name':
+            case 'panel_bgcolor':
+            case 'panel_textcolor':
                 break;
             default:
                 throw new InvalidArgumentException("Serialize unauthorized key $key");
