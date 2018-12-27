@@ -19,7 +19,10 @@
           {#each geolist.items as geoitem}
               <li class="geocoder-result" on:click="onSelectGeoitem(geoitem)">{geoitem.display_name}</li>
           {:else}
-            <li on:click="clearPanel()">No results for '{geolist.query}'.</li>
+            <li on:click="clearPanel()">
+              <p>{__('NoGeocodingResults', geolist.query)}.</p>
+              <p>{__('TypeFullLocationName')}.</p>
+            </li>
           {/each}
           </ul>
         {/if}
@@ -38,6 +41,7 @@ import debounce from 'lodash/debounce'
 import { LocalStorageLens, MemoryStorage } from '../cache'
 import { NominatimJS } from 'nominatim-js'
 import Popper from 'popper.js'
+import __ from '../../helpers/gui-texts-i18n'
 
 const NOMINATIM_DRIP_TIME = 3000
 let lastDrip = 0
@@ -159,7 +163,8 @@ export default {
         fetchPromise: null,
       })
     }
-  }
+  },
+  helpers: { __ }
 }
 </script>
 

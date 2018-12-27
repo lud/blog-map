@@ -22,6 +22,8 @@ registerTranslation(DEFAULT_LANG,
     'PublishedOn': 'Published',
     'ReadMore': 'Read more',
     'PickCountry': 'Pick a country',
+    'NoGeocodingResults': 'No results for "$0"',
+    'TypeFullLocationName': "Try to type the full location name",
   }))
 registerTranslation('fr-FR',
   createTranslation(translations[DEFAULT_LANG], {
@@ -38,6 +40,8 @@ registerTranslation('fr-FR',
     'ReadMore': 'Lire',
     'Close': 'Fermer',
     'PickCountry': 'Choisir pays',
+    'NoGeocodingResults': 'Aucun résultat pour « $0 »',
+    'TypeFullLocationName': "Essayez d'entre le nom complet du lieu recherché",
   }))
 registerTranslation('fr', createTranslation(translations['fr-FR'], {}))
 
@@ -46,11 +50,16 @@ export function getI18nFunction(code) {
   if (typeof translations[code] === 'undefined') {
     console.warn("Language %s unavailable", code)
   }
-  return function getText(key) {
+  return function getText(key, ...args) {
     if (typeof source[key] === 'undefined') {
       console.warn("missing translation for %s:'%s'", source.countryCode, key)
+      return key
     }
-    return source[key] || key
+    let text = source[key], i = args.length
+    while (i--) {
+      text = text.replace(`$${i}`, args[i])
+    }
+    return text
   }
 }
 export function getI18nFunctionDefault() {
