@@ -6,8 +6,8 @@
    activeArea="{mapAreaConfigs[mapArea]}"
    on:click_feature="handleMapSelection(event, true)">
   {#if page && page.title}
-    <div class="wpmap-panel" transition:fly="{y: 100, duration: 500}">
-      <a class="wpmap-post-title" href="{page.url}">{page.title}</a>
+    <div class="wpmap-panel" transition:fly="{y: 100, duration: 500}" style="color: {config.panel_textcolor};background-color: {config.panel_bgcolor};">
+      <a class="wpmap-post-title" style="color: {config.panel_textcolor};" href="{page.url}">{page.title}</a>
       <div class="wpmap-excerpt">
         {#await postInfoPromise}
           <p class="loading">Chargement de la description ...</p>
@@ -31,8 +31,8 @@
         {/await}
         </span>
 
-        <a class="wpmap-btn" href="{page.url}">{__('ReadMore')}</a>
-        <a href="#" class="wpmap-btn" on:click="closeInfoPanel(event)">{__('Close')}</a>
+        <a style="color: {config.panel_textcolor}; border-color: {config.panel_textcolor}" class="wpmap-btn" href="{page.url}">{__('ReadMore')}</a>
+        <a style="color: {config.panel_textcolor}; border-color: {config.panel_textcolor}" href="#" class="wpmap-btn" on:click="closeInfoPanel(event)">{__('Close')}</a>
       </div>
     </div>
   {/if}
@@ -179,7 +179,8 @@
     color: darkred;
   }
   .wpmap-btn {
-    border: 1px solid white;
+    border-width: 1px;
+    border-style: solid;
     text-decoration: none;
     font-weight: normal;
     border-radius: 4px;

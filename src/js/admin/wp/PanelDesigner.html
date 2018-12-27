@@ -1,0 +1,32 @@
+<div>
+  <h4>{__('PanelDesign')}</h4>
+    <label>{__('PanelColors')}</label>
+    <input type="color" bind:value=bgColor on:change="fireChange()"/>
+    <input type="color" bind:value=textColor on:change="fireChange()"/>
+</div>
+
+<script>
+import __ from '../../helpers/gui-texts-i18n'
+
+export default {
+  data() {
+    return {
+
+    }
+  },
+  methods: {
+    fireChange() {
+      const { bgColor, textColor } = this.get()
+      this.fire('change', { bgColor, textColor })
+    }
+  },
+  helpers: { __ }
+}
+</script>
+
+<style>
+  label {
+    display: block;
+    /*font-weight: bold;*/
+  }
+</style>

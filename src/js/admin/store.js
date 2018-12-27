@@ -197,6 +197,19 @@ class Store extends BaseStore {
       )
   }
 
+  actSetPanelConfig({ bgColor, textColor }) {
+    const { mapID, mapConfig } = this.get()
+    const currentConfig = mapConfig
+    patchMap(mapID, { panel_bgcolor: bgColor, panel_textcolor: textColor })
+      .then(
+        data => this.setFetchedMapConfig(data),
+        err => {
+          console.error("Could not save map")
+          // this.setFetchedMapConfig(currentConfig)
+        }
+      )
+  }
+
   setFetchedMapConfig(conf) {
     const { id } = conf
     let { mapConfigs } = this.get()

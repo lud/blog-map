@@ -1,11 +1,12 @@
 <div class="pin-designer-columns">
   <div>
-    <h4>{__('Size')}</h4>
+    <h4>{__('PinDesign')}</h4>
+    <label>{__('Size')}</label>
     <input type="range" bind:value=height min="{minimumHeight}" max="{maximumHeight}" on:change="fixAndFire()" />
     <span>{height}px</span>
-    <h4>{__('Shape')}</h4>
+    <label>{__('Shape')}</label>
     <input type="range" bind:value=radius min="{minimumRadius}" max="{maximumRadius}" on:change="fixAndFire()" />
-    <h4>{__('PinColors')}</h4>
+    <label>{__('PinColors')}</label>
     <input type="color" bind:value=fillColor on:change="fireChange()"/>
     <input type="color" bind:value=strokeColor on:change="fireChange()"/>
     <input type="color" bind:value=iconColor on:change="fireChange()"/>
@@ -90,7 +91,8 @@
   input, span {
     vertical-align: middle;
   }
-  h4 {
-    margin: 0;
+  label {
+    display: block;
+    /*font-weight: bold;*/
   }
 </style>

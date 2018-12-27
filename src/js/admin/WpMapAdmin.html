@@ -9,7 +9,7 @@
         <h1>{__('BlogMapConfig')}</h1>
         <nav class="wpmap-gui-tab-headers">
           <a class="tab-header-{tabVisibility(0)}" on:click="setTab(0, event)" href="#wpmap-tab-posts">{__('PostsList')}</a>
-          <a class="tab-header-{tabVisibility(1)}" on:click="setTab(1, event)" href="#wpmap-tab-pindesign">{__('PinDesign')}</a>
+          <a class="tab-header-{tabVisibility(1)}" on:click="setTab(1, event)" href="#wpmap-tab-pindesign">{__('Styles')}</a>
           <a class="tab-header-{tabVisibility(2)}" on:click="setTab(2, event)" href="#wpmap-tab-bg">{__('BackgroundLayer')}</a>
           <a class="tab-header-{tabVisibility(3)}" on:click="setTab(3, event)" href="#wpmap-tab-help">{__('Help')}</a>
         </nav>
@@ -25,7 +25,7 @@
                 {/if}
               </div>
               <div class="wpmap-gui-tab tab-{tabVisibility(1)}" id="wpmap-tab-pindesign">
-                <h2>{__('PinDesign')}</h2>
+                <h2>{__('Styles')}</h2>
                 <PinDesigner
                   on:change="$actSetPinConfig(event)"
                   height={$mapConfig.pin_config.height}
@@ -33,6 +33,10 @@
                   fillColor={$mapConfig.pin_config.fillColor}
                   iconColor={$mapConfig.pin_config.iconColor}
                   strokeColor={$mapConfig.pin_config.strokeColor} />
+                <PanelDesigner
+                  on:change="$actSetPanelConfig(event)"
+                  bgColor={$mapConfig.panel_bgcolor}
+                  textColor={$mapConfig.panel_textcolor}/>
               </div>
               <div class="wpmap-gui-tab tab-{tabVisibility(2)}" id="wpmap-tab-bg">
                 <h2>{__('BackgroundLayer')}</h2>
@@ -63,6 +67,7 @@ import LoadingSpinner from './wp/LoadingSpinner.html'
 import CountriesDatalist from './wp/CountriesDatalist.html'
 import IconsDatalist from './wp/IconsDatalist.html'
 import PinDesigner from './wp/PinDesigner.html'
+import PanelDesigner from './wp/PanelDesigner.html'
 import BackgroundLayerPicker from './wp/BackgroundLayerPicker.html'
 import HelpPage from './HelpPage.html'
 import WpMap from './../client/WpMap.html'
@@ -79,6 +84,7 @@ export default {
     WpMap,
     BackgroundLayerPicker,
     PinDesigner,
+    PanelDesigner,
     HelpPage,
   },
   data() {

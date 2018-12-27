@@ -206,10 +206,13 @@ class WpMap_Migration {
 
     private function createColorsConfigFields(wpdb $wpdb)
     {
+
+        $defaultPanelBgcolor = '#52555f';
+        $defaultPanelTextcolor = '#ffffff';
         $table = WpMap_Data::mapsTableName($wpdb);
         $sql = "ALTER TABLE $table
-            ADD COLUMN panel_bgcolor varchar(7),
-            ADD COLUMN panel_textcolor varchar(7)
+            ADD COLUMN panel_bgcolor varchar(7) DEFAULT '$defaultPanelBgcolor',
+            ADD COLUMN panel_textcolor varchar(7) DEFAULT '$defaultPanelTextcolor'
         ";
         return $wpdb->query($sql);
     }
