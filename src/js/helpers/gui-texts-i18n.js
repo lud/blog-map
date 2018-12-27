@@ -39,6 +39,7 @@ registerTranslation('fr-FR',
     'Close': 'Fermer',
     'PickCountry': 'Choisir pays',
   }))
+registerTranslation('fr', createTranslation(translations['fr-FR'], {}))
 
 export function getI18nFunction(code) {
   const source = translations[code] || translations[DEFAULT_LANG]

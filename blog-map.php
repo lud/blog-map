@@ -9,8 +9,6 @@ Author URI:
 License: MIT
 */
 defined('ABSPATH') or exit();
-ini_set('display_errors', 'on');
-error_reporting(E_ALL);
 define('WPMAP_VERSION', WP_DEBUG ? time() : '0.0.1');
 
 // Visibility constants

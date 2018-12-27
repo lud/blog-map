@@ -141,23 +141,25 @@ class Store extends BaseStore {
     this.patchPostLayer(post, mapID, newLayer)
   }
 
-  actSetPostCountryCode(postID, alpha2) {
+  actSetPostCountryCode(postID, { alpha2, lat, lon }) {
     const post = this.getPost(postID)
     const clone = JSON.parse(JSON.stringify(post))
     clone.meta.wpmap_country_alpha2 = alpha2
     this.setFetchedPost(clone)
-    this.patchPostMeta(post, {
-        wpmap_country_alpha2: alpha2
-    })
+    const metaChangeset = {
+      wpmap_country_alpha2: alpha2
+    }
+    if (lat || lon) {
+      metaChangeset.wpmap_latlng = [lat, lon]
+    }
+    this.patchPostMeta(post, metaChangeset)
   }
 
   actSetPostGeocoding(postID, { display_name: geocoded, lat, lon }) {
-    const latlng = [lat, lon]
     const post = this.getPost(postID)
-
     this.patchPostMeta(post, {
       wpmap_geocoded: geocoded,
-      wpmap_latlng: latlng,
+      wpmap_latlng: [lat, lon],
     })
   }
 

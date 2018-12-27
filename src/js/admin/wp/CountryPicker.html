@@ -19,6 +19,7 @@
 <script>
 import { countries } from 'country-data'
 import __ from '../../helpers/gui-texts-i18n'
+import countryCoords from '../country-coords.js'
 
 const countryNameToAlpha2 = {}
 countries.all.forEach(c => {
@@ -53,7 +54,13 @@ export default {
   },
 	onstate({ changed, current, previous }) {
 		if (changed.value) {
-    	this.fire('change', current.value)
+      const event = { alpha2: current.value }
+      if (current.value in countryCoords) {
+        const { lat, lon } = countryCoords[current.value]
+        event.lat = lat
+        event.lon = lon
+      }
+    	this.fire('change', event)
 		}
 	},
   methods: {

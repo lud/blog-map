@@ -115,6 +115,7 @@ SQL;
             LEFT JOIN {META_TABLE_NAME} m3 ON p.ID = m3.post_id AND m3.meta_key = 'wpmap_geocoded'
             WHERE lc.visible = 1
               AND p.post_status = 'publish'
+              AND p.post_type IN ('post', 'page')
 SQL;
         return $this->runPostQuery($sql, array(':map_id' => $mapID));
     }
@@ -139,6 +140,7 @@ SQL;
             LEFT JOIN {META_TABLE_NAME} m2 ON p.ID = m2.post_id AND m2.meta_key = 'wpmap_country_alpha2'
             LEFT JOIN {META_TABLE_NAME} m3 ON p.ID = m3.post_id AND m3.meta_key = 'wpmap_geocoded'
             WHERE p.post_status = 'publish'
+              AND p.post_type IN ('post', 'page')
 SQL;
         return $this->runPostQuery($sql, array(':map_id' => $mapID));
     }
