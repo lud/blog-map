@@ -4,7 +4,7 @@
         "build": "rollup -c",
         "autobuild": "rollup -c -w",
         "dev": "npm run clean && npm run copy-assets && npm run autobuild",
-        "copy-assets": "cp node_modules/leaflet/dist/images public/widget/ -rv",
+        "copy-assets": "cp -rv node_modules/leaflet/dist/images public/widget/",
         "clean": "rm -rvf public && mkdir public && mkdir public/widget && mkdir public/admin",
         "start": "serve public --listen 8000",
         "OFF_postinstall": "cp modified-rollup-plugin-svelte.cjs.js node_modules/rollup-plugin-svelte/dist/rollup-plugin-svelte.cjs.js -v"

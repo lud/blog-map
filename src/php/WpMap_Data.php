@@ -295,10 +295,9 @@ SQL;
 
 class WpMap_ORM extends ORM {
 
-    // public function quote($term) {
-    //     return $this->_quote_identifier($term);
-    // }
-
+    // Overriding the for_table() method to require a connection_name
+    // but we must change the method name as we slightly change the
+    // signature
     public static function customForTable($table_name, $connection_name) {
         static::_setup_db($connection_name);
         return new static($table_name, array(), $connection_name);

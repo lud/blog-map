@@ -2,8 +2,10 @@ deps:
 	composer install
 	mv vendor/j4mie/idiorm/idiorm.php idiorm.php
 	rm -rvf vendor
+	yarn
 release:
 	rimraf _release
+	yarn
 	yarn clean
 	yarn copy-assets
 	yarn build

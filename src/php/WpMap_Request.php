@@ -19,12 +19,12 @@ class WpMap_Request implements ArrayAccess {
         $this->cookie = $_COOKIE;
         $this->request = $_REQUEST;
 
-        //If magic quotes are actually enabled in PHP,
-        //we'll need to remove the slashes.
+        // If magic quotes are actually enabled in PHP,
+        // we'll need to remove the slashes.
         if ( get_magic_quotes_gpc() ) {
-            $this->get    = stripslashes_deep($this->get);
-            $this->post   = stripslashes_deep($this->post);
-            $this->cookie = stripslashes_deep($this->cookie);
+            $this->get     = stripslashes_deep($this->get);
+            $this->post    = stripslashes_deep($this->post);
+            $this->cookie  = stripslashes_deep($this->cookie);
             $this->request = stripslashes_deep($this->request);
         }
 

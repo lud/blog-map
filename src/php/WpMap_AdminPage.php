@@ -11,7 +11,9 @@ class WpMap_AdminPage {
     public static function render()
     {
         $req = WpMap_Request::getInstance();
-        if ($req->find('rollback') === 'true')
+        // @todo remove ability to rollback via an url parameter
+        // when we reach version 1
+        if ($req->find('rollback') === 'true' || $req->find('rollback') === '1' )
         {
             WpMap_Migration::rollbackEnv();
         }
@@ -106,7 +108,8 @@ class WpMap_AdminPage {
                 case 'wpmap_country_alpha2':
                     delete_post_meta($postID, 'wpmap_geocoded');
                     delete_post_meta($postID, 'wpmap_latlng');
-                break;
+                    break;
+                // other rules ?
             }
         }
 
