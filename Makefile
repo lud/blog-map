@@ -1,8 +1,9 @@
 deps:
 	composer install
 	mv vendor/j4mie/idiorm/idiorm.php idiorm.php
-	rm -rvf vendor
 	yarn
+
+
 release:
 	rimraf _release
 	yarn
@@ -19,4 +20,11 @@ release:
 	cp -rv public _release/blog-map/
 	zip -9rv _release/blog-map.zip _release/blog-map
 	tree _release
-
+lint:
+	find src/php/ -exec php -l {} \;
+cbf:
+	./vendor/bin/phpcbf --config-set php_version 50300
+	./vendor/bin/phpcbf --standard=PSR12 src/php 
+sniff:
+	./vendor/bin/phpcs --config-set php_version 50300
+	./vendor/bin/phpcs --standard=PSR12 src/php 

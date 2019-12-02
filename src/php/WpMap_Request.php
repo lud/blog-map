@@ -2,8 +2,9 @@
 
 defined('ABSPATH') or exit();
 
-class WpMap_Request implements ArrayAccess {
-    static private $singleton;
+class WpMap_Request implements ArrayAccess
+{
+    private static $singleton;
 
     private $get;
     private $post;
@@ -21,7 +22,7 @@ class WpMap_Request implements ArrayAccess {
 
         // If magic quotes are actually enabled in PHP,
         // we'll need to remove the slashes.
-        if ( get_magic_quotes_gpc() ) {
+        if (get_magic_quotes_gpc()) {
             $this->get     = stripslashes_deep($this->get);
             $this->post    = stripslashes_deep($this->post);
             $this->cookie  = stripslashes_deep($this->cookie);
@@ -67,9 +68,11 @@ class WpMap_Request implements ArrayAccess {
     public function getHttpVerb()
     {
         $requestMethod = strtoupper($_SERVER['REQUEST_METHOD']);
-        if ($requestMethod === 'POST'
+        if (
+            $requestMethod === 'POST'
             && isset($_POST['_method'])
-            && in_array($_method = strtoupper($_POST['_method']), array('PUT', 'PATCH'))) {
+            && in_array($_method = strtoupper($_POST['_method']), array('PUT', 'PATCH'))
+        ) {
             $requestMethod = $_method;
         }
         return $requestMethod;
@@ -88,7 +91,6 @@ class WpMap_Request implements ArrayAccess {
     public function offsetSet($key, $value)
     {
         throw new Exception("Request is immutable");
-
     }
 
     public function offsetUnset($key)

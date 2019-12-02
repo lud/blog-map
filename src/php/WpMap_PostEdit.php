@@ -2,28 +2,28 @@
 
 defined('ABSPATH') or exit();
 
-class WpMap_AdminPage
+class WpMap_PostEdit
 {
 
-    public static function render()
+    public static function render(WP_Post $post)
     {
-        $req = WpMap_Request::getInstance();
-        // @todo remove ability to rollback via an url parameter
-        // when we reach version 1
-        if ($req->find('rollback') === 'true' || $req->find('rollback') === '1') {
-            WpMap_Migration::rollbackEnv();
-        }
         WpMap_Migration::migrateEnv();
         $self = new static();
-        return $self->doRender();
+        return $self->doRender($post);
     }
 
-    private function doRender()
+    private function doRender(WP_Post $post)
     {
-        wp_enqueue_script('wpmap_admin_bundle_js');
-        wp_enqueue_style('wpmap_admin_bundle_css');
-        echo "\n", '<div id="wpmap-admin-app">';
-        echo '</div>';
+        IOList::out(array(
+            '<div id="wpmap-post-admin-app">',
+            '</div>',
+            WpMap_JS::dataToConfigScriptTag(array(
+                'post' => array(
+                    'id' => $post->ID,
+                    'meta' => WpMap_Data::getInstance()->postMeta($post->ID),
+                )
+            )),
+        ));
     }
 
     public static function ajaxRoutes()

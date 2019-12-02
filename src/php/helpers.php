@@ -3,13 +3,15 @@
 defined('ABSPATH') or exit();
 
 if (!function_exists('has_string_keys')) {
-    function has_string_keys(array $array) {
+    function has_string_keys(array $array)
+    {
         return count(array_filter(array_keys($array), 'is_string')) > 0;
     }
 }
 
 if (!function_exists('flatten')) {
-    function flatten(array $array) {
+    function flatten(array $array)
+    {
         $result = array();
         $array = array_values($array);
         foreach ($array as $value) {
@@ -80,7 +82,8 @@ function api_send_errors($statusCode, $errors)
     exit;
 }
 
-function latlngToLonlat($latlng) {
+function latlngToLonlat($latlng)
+{
     list($lat, $lon) = $latlng;
     return array($lon, $lat);
 }

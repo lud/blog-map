@@ -2,7 +2,8 @@
 
 defined('ABSPATH') or exit();
 
-class WpMap_AjaxController {
+class WpMap_AjaxController
+{
 
     private $routes = array();
 
@@ -14,6 +15,7 @@ class WpMap_AjaxController {
         }
         // if an action is public, we still have to register a wp_ajax (on top
         // of a wp_ajax_nopriv) to be able to call it when logged in
+        // @todo prefix all routes with the plugin name
         foreach ($routes as $action => $_) {
             add_action("wp_ajax_$action", array($this, 'handleRequest'));
             if ($public) {
@@ -104,6 +106,4 @@ class WpMap_AjaxController {
         api_send_errors(500, $jsonApiError);
         return true;
     }
-
-
 }

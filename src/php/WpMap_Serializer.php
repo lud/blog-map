@@ -106,7 +106,4 @@ class WpMap_Serializer
         }
         return $map;
     }
-
-
-
 }

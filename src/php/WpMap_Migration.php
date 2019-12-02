@@ -2,7 +2,8 @@
 
 defined('ABSPATH') or exit();
 
-class WpMap_Migration {
+class WpMap_Migration
+{
 
     const VERSION_OPT_KEY = 'wpmap_migrations';
 
@@ -57,7 +58,7 @@ class WpMap_Migration {
     public function registerMigration($key)
     {
         $versions = $this->getInstalledVersions();
-        $versions[]= $key;
+        $versions[] = $key;
         $this->setInstalledVersions($versions);
     }
 
@@ -78,6 +79,7 @@ class WpMap_Migration {
         try {
             foreach (self::migrations() as $key => $migration) {
                 if (!in_array($key, $installeds)) {
+                    // @todo remove all debugging error_log() calls
                     error_log("[WpMap_Migration] apply $key");
                     $this->runMigration($key, $migration);
                     $this->registerMigration($key);
@@ -175,8 +177,7 @@ class WpMap_Migration {
         $inserted = $wpdb->insert(WpMap_Data::mapsTableName($wpdb), array(
                 'id' => 'default-map',
                 'name' => 'Blog Map',
-            )
-        );
+            ));
         return $inserted;
     }
 
@@ -226,7 +227,4 @@ class WpMap_Migration {
         ";
         return $wpdb->query($sql);
     }
-
-
 }
-

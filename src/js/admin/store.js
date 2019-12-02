@@ -135,6 +135,7 @@ class Store extends BaseStore {
     // side state
     const post = this.getPost(postID)
     const { mapID } = this.get()
+    // @todo this is a PUT, not a PATCH
     const newLayer = Object.assign({}, post.layer, {
         visible: visibility
     })

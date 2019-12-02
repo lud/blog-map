@@ -2,7 +2,8 @@
 
 defined('ABSPATH') or exit();
 
-class WpMap_Data {
+class WpMap_Data
+{
 
     const MAPS_TABLE_NAME = 'wpmap_maps';
     const DEFAULT_ICON = 'star';
@@ -27,7 +28,7 @@ class WpMap_Data {
 
     private $wpdb;
 
-    static private $instance;
+    private static $instance;
     private $connectionName;
     private $tablePrefix;
 
@@ -35,7 +36,7 @@ class WpMap_Data {
     {
         if (null === static::$instance) {
             global $wpdb;
-            $connectionName = 'wpmap_conn_'.uniqid();
+            $connectionName = 'wpmap_conn_' . uniqid();
             static::$instance = new static($connectionName, $wpdb->prefix);
         }
         return static::$instance;
@@ -44,21 +45,21 @@ class WpMap_Data {
     private function __construct($connectionName, $tablePrefix)
     {
         // This is bad because there the connection is global
-        ORM::configure('connection_string', 'mysql:host='.DB_HOST.';dbname='.DB_NAME.';charset='.DB_CHARSET, $connectionName);
+        ORM::configure('connection_string', 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET, $connectionName);
         ORM::configure('username', DB_USER, $connectionName);
         ORM::configure('password', DB_PASSWORD, $connectionName);
         $this->connectionName = $connectionName;
         $this->tablePrefix = $tablePrefix;
     }
 
-    public static function mapsTableName()
+    public static function mapsTableName(wpdb $wpdb)
     {
-        return static::getInstance()->tprefix(WpMap_Data::MAPS_TABLE_NAME);
+        return $wpdb->prefix . WpMap_Data::MAPS_TABLE_NAME;
     }
 
-    public static function postsLayerconfTableName()
+    public static function postsLayerconfTableName(wpdb $wpdb)
     {
-        return static::getInstance()->tprefix(WpMap_Data::POSTS_LAYERCONF_TABLE_NAME);
+        return $wpdb->prefix . WpMap_Data::POSTS_LAYERCONF_TABLE_NAME;
     }
 
     public function findMap($mapID)
@@ -85,7 +86,7 @@ SQL;
                 ':map_id' => $mapID
             ))
             ->findOne();
-        return $this->fetchLayerKeys($layer, array('icon', 'visible'));
+        return $this->readLayer($layer, array('icon', 'visible'));
     }
 
     public function mapsConfigs()
@@ -160,7 +161,7 @@ SQL;
         $layer = $this
             ->runQuery($sql, array(':post_id' => $postID))
             ->findOne();
-        return $this->fetchMetaKeys($layer, array('wpmap_latlng', 'wpmap_country_alpha2', 'wpmap_geocoded'));
+        return $this->readMeta($layer, array('wpmap_latlng', 'wpmap_country_alpha2', 'wpmap_geocoded'));
     }
 
     public function updatePostLayerConf($postID, $mapID, $key, $value)
@@ -214,7 +215,7 @@ SQL;
             ->runQuery($sql, $queryParams)
             ->findMany();
 
-        $propKeys = array('ID', 'title', 'url', 'status', 'type');
+        $columns = array('ID', 'title', 'url', 'status', 'type');
         $metaKeys = array('wpmap_latlng', 'wpmap_country_alpha2', 'wpmap_geocoded');
         $layerKeys = array('icon', 'visible');
 
@@ -227,11 +228,11 @@ SQL;
 
 
 
-    private function expandPostRecord(ORM $record, $propKeys, $metaKeys, $layerKeys)
+    private function expandPostRecord(ORM $record, $columns, $metaKeys, $layerKeys)
     {
-        $props = $this->fetchPropKeys($record, $propKeys);
-        $meta = $this->fetchMetaKeys($record, $metaKeys);
-        $layer = $this->fetchLayerKeys($record, $layerKeys);
+        $props = $this->readColumns($record, $columns);
+        $meta = $this->readMeta($record, $metaKeys);
+        $layer = $this->readLayer($record, $layerKeys);
 
         return (object) array(
             self::POST_KEY => intval($record->{self::POST_KEY}),
@@ -241,24 +242,27 @@ SQL;
         );
     }
 
-    private function fetchPropKeys($record, $keys) {
-        $result = new stdClass;
+    private function readColumns($record, $keys)
+    {
+        $result = new stdClass();
         foreach ($keys as $key) {
             $result->$key = WpMap_Serializer::unserializePostColumn($key, $record->$key);
         }
         return $result;
     }
 
-    private function fetchMetaKeys($record, $keys) {
-        $result = new stdClass;
+    private function readMeta($record, $keys)
+    {
+        $result = new stdClass();
         foreach ($keys as $key) {
             $result->$key = WpMap_Serializer::unserializePostMeta($key, $record->$key);
         }
         return $result;
     }
 
-    private function fetchLayerKeys($record, $keys) {
-        $result = new stdClass;
+    private function readLayer($record, $keys)
+    {
+        $result = new stdClass();
         foreach ($keys as $key) {
             $result->$key = is_null($record->$key)
                 ? $this->defaultLayerConfValue($key)
@@ -293,12 +297,14 @@ SQL;
     }
 }
 
-class WpMap_ORM extends ORM {
+class WpMap_ORM extends ORM
+{
 
     // Overriding the for_table() method to require a connection_name
     // but we must change the method name as we slightly change the
     // signature
-    public static function customForTable($table_name, $connection_name) {
+    public static function customForTable($table_name, $connection_name)
+    {
         static::_setup_db($connection_name);
         return new static($table_name, array(), $connection_name);
     }

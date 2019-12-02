@@ -2,7 +2,8 @@
 
 defined('ABSPATH') or exit();
 
-class WpMap_ApiError extends Exception {
+class WpMap_ApiError extends Exception
+{
 
     public function __construct($statusCode = 500, $title = null)
     {

@@ -2,7 +2,8 @@
 
 defined('ABSPATH') or exit();
 
-class WpMap_Widget extends WP_Widget {
+class WpMap_Widget extends WP_Widget
+{
 
     const NO_MAP_ID = '__NO_MAP__';
 
@@ -79,11 +80,9 @@ class WpMap_Widget extends WP_Widget {
             return;
         }
         $map = $map->as_array();
-        wp_enqueue_style('wpmap_widget_bundle_css');
-        wp_enqueue_script('wpmap_widget_bundle_js');
 
         // Define a global value to pass the ajax controller URL
-        wp_localize_script( 'wpmap_widget_bundle_js', '_wpmap_loc', array(
+        wp_localize_script('wpmap_widget_bundle_js', '_wpmap_loc', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
         ));
 
@@ -103,7 +102,7 @@ class WpMap_Widget extends WP_Widget {
                     mapID: 'default-map',
                     config: <?php echo json_encode($map) . "\n"; ?>
                 })
-            }(this._wpmap = this._wpmap || {maps: []}))
+            }(this._wpmap = this._wpmap || {maps: []}));
         </script>
         <?php
         echo $args['after_widget'];
@@ -127,7 +126,8 @@ class WpMap_Widget extends WP_Widget {
         return $this->postsToFeatureCollection($posts);
     }
 
-    public function getPostInfos($input) {
+    public function getPostInfos($input)
+    {
         $postID = $input['postID'];
         // get_the_excerpt/1 requires to be called within theloop if the post
         // has no excerpt to be able to generate an excerpt from the post
@@ -154,7 +154,7 @@ class WpMap_Widget extends WP_Widget {
                     'coordinates' => latlngToLonlat($post->meta->wpmap_latlng)
                 ),
             );
-            $fc['features'][]= $feature;
+            $fc['features'][] = $feature;
         }
         return $fc;
     }
