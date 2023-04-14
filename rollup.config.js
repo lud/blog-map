@@ -1,7 +1,8 @@
 import svelte from 'rollup-plugin-svelte'
 import livereload from 'rollup-plugin-livereload'
-// import resolve from 'rollup-plugin-node-resolve'
+import resolve from 'rollup-plugin-node-resolve'
 import replace from 'rollup-plugin-replace'
+import json from 'rollup-plugin-json'
 import commonjs from 'rollup-plugin-commonjs'
 import buble from 'rollup-plugin-buble'
 import {
@@ -22,12 +23,19 @@ function createConfig(config) {
         include: '*/**',
         'process.env.NODE_ENV': JSON.stringify(production ? 'production' : 'dev'),
       }),
-      // resolve({
-      //   module: true,
-      //   jsnext: true,
-      //   browser: true
-      // }),
-      // json(),
+      // If you have external dependencies installed from
+      // npm, you'll most likely need these plugins. In
+      // some cases you'll need additional configuration —
+      // consult the documentation for details:
+      // https://github.com/rollup/rollup-plugin-commonjs
+      commonjs(),
+      resolve({
+        module: true,
+        jsnext: true,
+        browser: true
+      }),
+      // Json is used by countries data
+      json(),
       svelte({
         // enable run-time checks when not in production
         dev: !production,
@@ -40,12 +48,6 @@ function createConfig(config) {
         extract: true,
         minimize: production
       }),
-      // If you have external dependencies installed from
-      // npm, you'll most likely need these plugins. In
-      // some cases you'll need additional configuration —
-      // consult the documentation for details:
-      // https://github.com/rollup/rollup-plugin-commonjs
-      // commonjs(),
       // If we're building for production (npm run build
       // instead of npm run dev), transpile and minify
       production && buble({

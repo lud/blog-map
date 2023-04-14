@@ -1,0 +1,47 @@
+<datalist id="country-names-data">
+    {#each countries.all as country}
+      <option>{country.name}</option>
+    {/each}
+</datalist>
+<label for="wpmap-country-picker-input">
+    {__('PickCountry')}
+</label>
+<input id="wpmap-country-picker-input" 
+       type="text" 
+       list="country-names-data"
+       on:change={changedCountry}
+       on:input={changedCountry}
+/>
+{#if countryFound}
+    <span>OK</span>
+{:else if countrySearched}
+    <span>Not found</span>
+{/if}
+
+
+
+<script>
+import __ from '../helpers/gui-texts-i18n.js'
+import { countries } from 'country-data'
+
+
+const countryNameToAlpha2 = {}
+countries.all.forEach(c => {
+  countryNameToAlpha2[c.name.toLowerCase()] = c.alpha2
+})
+
+let countrySearched = false
+let countryFound = false
+
+function changedCountry(event) {
+    countrySearched = true
+    const countryName = event.target.value
+    const lowerName = countryName.toLowerCase()
+    if (countryNameToAlpha2[lowerName]) {
+        console.log(`found`, countryName)
+        countryFound = true
+    } else {
+        countryFound = false
+    }
+}
+</script>
